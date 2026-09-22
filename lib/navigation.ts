@@ -10,6 +10,7 @@ import {
   Trophy,
   Hospital,
   Mic,
+  Landmark,
   type LucideIcon,
 } from "lucide-react"
 import type { translations } from "@/lib/i18n"
@@ -38,6 +39,7 @@ export function getNavigation(t: DashboardNavLabels): NavItem[] {
     { name: t.inicio, href: "/dashboard", icon: Home },
     { name: t.cronograma, href: "/dashboard/cronograma", icon: CalendarDays },
     { name: t.calendario, href: "/dashboard/calendario", icon: CalendarClock },
+    { name: t.atividadesUnr, href: "/dashboard/actividades-unr", icon: Landmark },
     {
       name: t.materiais,
       href: "/dashboard/materiais",

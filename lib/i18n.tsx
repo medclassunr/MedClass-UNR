@@ -21,6 +21,7 @@ const pt = {
     inicio: "Início",
     cronograma: "Cronograma",
     calendario: "Calendário",
+    atividadesUnr: "Actividades en la UNR",
     materiais: "Materiais",
     videoaulas: "Videoaulas",
     resumos: "Resumos",
@@ -146,6 +147,14 @@ const pt = {
   whatsapp: {
     suporte: "Atendimento e Vendas",
     grupo: "Grupo de Alunos",
+  },
+  atividadesUnr: {
+    carregando: "Carregando atividades...",
+    erro: "Não foi possível carregar as atividades de hoje. Tente novamente em instantes.",
+    semAtividades: "Nenhuma atividade encontrada para hoje.",
+    emAndamento: "Em andamento",
+    atualizar: "Atualizar",
+    fonte: "Fonte: Bedelía FCM UNR",
   },
   cronograma: {
     // Rótulos de exibição por chave canônica (chave é sempre a mesma nos dois
@@ -1157,6 +1166,7 @@ const es: typeof pt = {
     inicio: "Inicio",
     cronograma: "Cronograma",
     calendario: "Calendario",
+    atividadesUnr: "Actividades en la UNR",
     materiais: "Materiales",
     videoaulas: "Videoclases",
     resumos: "Resúmenes",
@@ -1276,6 +1286,14 @@ const es: typeof pt = {
   whatsapp: {
     suporte: "Atención y Ventas",
     grupo: "Grupo de Estudiantes",
+  },
+  atividadesUnr: {
+    carregando: "Cargando actividades...",
+    erro: "No se pudieron cargar las actividades de hoy. Intentá de nuevo en unos instantes.",
+    semAtividades: "No hay actividades para hoy.",
+    emAndamento: "En curso",
+    atualizar: "Actualizar",
+    fonte: "Fuente: Bedelía FCM UNR",
   },
   medcoinsWidget: {
     verExtrato: "Ver movimientos",
