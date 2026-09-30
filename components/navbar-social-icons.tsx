@@ -1,7 +1,7 @@
 "use client"
 
 const INSTAGRAM_URL = "https://www.instagram.com/medclassunr"
-const SUPORTE_URL = "https://wa.me/543412290349"
+const SUPORTE_URL = "https://wa.me/543417214945"
 
 function InstagramIcon({ className }: { className?: string }) {
   return (

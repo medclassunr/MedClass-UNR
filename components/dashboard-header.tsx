@@ -21,6 +21,7 @@ export function DashboardHeader() {
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [hasFullAccess, setHasFullAccess] = useState(false)
 
   useEffect(() => {
     getPlanStatus().then((status) => {
@@ -30,6 +31,7 @@ export function DashboardHeader() {
       setFirstName(name.split(" ")[0] ?? "")
       setEmail(status.email ?? "")
       setAvatarUrl(status.avatarUrl)
+      setHasFullAccess(status.hasFullAccess)
     })
   }, [])
 
@@ -60,7 +62,7 @@ export function DashboardHeader() {
       <GlobalSearch />
 
       <div className="ml-auto flex items-center gap-2 md:ml-0">
-        <WhatsappHeaderButtons />
+        <WhatsappHeaderButtons hasFullAccess={hasFullAccess} />
         <ThemeToggle />
         <LanguageSwitcher />
         <NotificationsPanel />

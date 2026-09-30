@@ -3,7 +3,7 @@
 import { useLanguage } from "@/lib/i18n"
 
 const INSTAGRAM_URL = "https://www.instagram.com/medclassunr"
-const GRUPO_URL = "https://chat.whatsapp.com/JC6z8bHq2NOLoxzY6EnjC4?s=hd&p=i&mlu=4"
+const GRUPO_URL = "https://chat.whatsapp.com/DLZmPmzMm0vDgTPgSFjKJS?mode=gi_t"
 
 function InstagramIcon({ className }: { className?: string }) {
   return (

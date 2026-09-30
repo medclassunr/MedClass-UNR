@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useLanguage } from "@/lib/i18n"
 
-const SUPORTE_URL = "https://wa.me/543412290349"
-const GRUPO_URL = "https://chat.whatsapp.com/JC6z8bHq2NOLoxzY6EnjC4?s=hd&p=i&mlu=4"
+const SUPORTE_URL = "https://wa.me/543417214945"
+const GRUPO_URL = "https://chat.whatsapp.com/DLZmPmzMm0vDgTPgSFjKJS?mode=gi_t"
 
 function WhatsappIcon({ className }: { className?: string }) {
   return (
@@ -20,7 +20,7 @@ function WhatsappIcon({ className }: { className?: string }) {
   )
 }
 
-export function WhatsappHeaderButtons() {
+export function WhatsappHeaderButtons({ hasFullAccess = false }: { hasFullAccess?: boolean }) {
   const { t } = useLanguage()
 
   return (
@@ -41,12 +41,14 @@ export function WhatsappHeaderButtons() {
             {t.whatsapp.suporte}
           </a>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href={GRUPO_URL} target="_blank" rel="noopener noreferrer" className="cursor-pointer gap-2.5">
-            <Users className="h-4 w-4 text-[#25D366]" />
-            {t.whatsapp.grupo}
-          </a>
-        </DropdownMenuItem>
+        {hasFullAccess && (
+          <DropdownMenuItem asChild>
+            <a href={GRUPO_URL} target="_blank" rel="noopener noreferrer" className="cursor-pointer gap-2.5">
+              <Users className="h-4 w-4 text-[#25D366]" />
+              {t.whatsapp.grupo}
+            </a>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

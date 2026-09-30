@@ -2,7 +2,7 @@
 
 import { useLanguage } from "@/lib/i18n"
 
-const SUPORTE_URL = "https://wa.me/543412290349"
+const SUPORTE_URL = "https://wa.me/543417214945"
 
 export function WhatsappFloatButton() {
   const { t } = useLanguage()

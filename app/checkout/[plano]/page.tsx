@@ -22,7 +22,7 @@ const PLANO_INFO: Record<PlanoPago, { nome: string; preco: string; periodo: stri
   trimestral: { nome: "Plano Trimestral", preco: "$ 18.000", periodo: "/trimestre", link: "https://mpago.la/2VVKs4n" },
 }
 
-const WHATSAPP_SUPORTE = "543412290349"
+const WHATSAPP_SUPORTE = "543417214945"
 
 export default function CheckoutPage({ params }: { params: Promise<{ plano: string }> }) {
   const { plano: planoParam } = use(params)
