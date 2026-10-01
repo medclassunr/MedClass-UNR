@@ -2,7 +2,7 @@
 
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { HomeStats } from "@/components/home-stats"
-import { ActionCards } from "@/components/action-cards"
+import { QuickAccessGrid } from "@/components/quick-access-grid"
 import { DesempenhoWidget } from "@/components/desempenho-widget"
 import { RankingWidget } from "@/components/ranking-widget"
 import { ComunidadeBanner } from "@/components/comunidade-banner"
@@ -26,7 +26,7 @@ export default function HomePage() {
 
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-6">{t.dashboardNav.oQueFazerAgora}</h2>
-          <ActionCards />
+          <QuickAccessGrid />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
