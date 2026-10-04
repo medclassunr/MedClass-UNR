@@ -400,10 +400,6 @@ const pt = {
     estudarCta: "Estudar",
     gratis: "Grátis",
     bloqueado: "Bloqueado",
-    casoBloqueadoCard: (tituloAnterior: string) => `Complete "${tituloAnterior}" com 60% de acerto para desbloquear`,
-    casoBloqueadoTitulo: "Caso bloqueado",
-    casoBloqueadoDescricao: (tituloAnterior: string) =>
-      `Você precisa concluir "${tituloAnterior}" com pelo menos 60% de acerto antes de acessar este caso.`,
     casoBloqueadoPlanoCard: "Disponível apenas nos planos pagos",
     casoBloqueadoPlanoTitulo: "Disponível apenas nos planos pagos",
     casoBloqueadoPlanoDescricao:
@@ -1545,10 +1541,6 @@ const es: typeof pt = {
     estudarCta: "Estudiar",
     gratis: "Gratis",
     bloqueado: "Bloqueado",
-    casoBloqueadoCard: (tituloAnterior: string) => `Completá "${tituloAnterior}" con 60% de acierto para desbloquear`,
-    casoBloqueadoTitulo: "Caso bloqueado",
-    casoBloqueadoDescricao: (tituloAnterior: string) =>
-      `Necesitás completar "${tituloAnterior}" con al menos 60% de acierto antes de acceder a este caso.`,
     casoBloqueadoPlanoCard: "Disponible solo en los planes pagos",
     casoBloqueadoPlanoTitulo: "Disponible solo en los planes pagos",
     casoBloqueadoPlanoDescricao:

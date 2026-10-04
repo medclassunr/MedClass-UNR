@@ -17,13 +17,7 @@ import { DesafioClinicoEditDialog } from "@/components/desafio-clinico-edit-dial
 import { DesafioFeedbackDialog } from "@/components/desafio-feedback-dialog"
 import { HighlightText } from "@/components/highlight-text"
 import { FormattedText } from "@/components/formatted-text"
-import {
-  desafioAnteriorObrigatorio,
-  foiAprovado,
-  bloqueadoPorPlano,
-  type DesafioParaBloqueio,
-  type HistoricoParaBloqueio,
-} from "@/lib/desafio-clinico-bloqueio"
+import { bloqueadoPorPlano } from "@/lib/desafio-clinico-bloqueio"
 import { getPlanStatus } from "@/lib/plan-status"
 
 function formatTimer(totalSeconds: number): string {
@@ -54,7 +48,6 @@ export function DesafioClinicoEstudoContent({ desafioId }: Props) {
   const [finalizado, setFinalizado] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [casoAnteriorObrigatorio, setCasoAnteriorObrigatorio] = useState<DesafioParaBloqueio | null>(null)
   const [bloqueadoPlanoGratuito, setBloqueadoPlanoGratuito] = useState(false)
   const [notaCorte, setNotaCorte] = useState(60)
   const isEditor = useIsContentEditor()
@@ -69,26 +62,15 @@ export function DesafioClinicoEstudoContent({ desafioId }: Props) {
   }
 
   async function loadDesafio() {
-    const { data: sessionData } = await supabase.auth.getSession()
-    const userId = sessionData.session?.user.id
-
-    const [{ data: desafioData }, { data: perguntasData }, { data: todosDesafiosData }, historicoRes, planStatus] =
-      await Promise.all([
-        supabase.from("desafios_clinicos").select("*").eq("id", desafioId).single(),
-        supabase
-          .from("desafios_clinicos_perguntas")
-          .select("*")
-          .eq("desafio_id", desafioId)
-          .order("ordem", { ascending: true }),
-        supabase.from("desafios_clinicos").select("id, titulo, secao, area").eq("ativo", true),
-        userId
-          ? supabase
-              .from("desafios_clinicos_historico")
-              .select("acertos, total, desafio:desafios_clinicos(id)")
-              .eq("user_id", userId)
-          : Promise.resolve({ data: [] }),
-        getPlanStatus(),
-      ])
+    const [{ data: desafioData }, { data: perguntasData }, planStatus] = await Promise.all([
+      supabase.from("desafios_clinicos").select("*").eq("id", desafioId).single(),
+      supabase
+        .from("desafios_clinicos_perguntas")
+        .select("*")
+        .eq("desafio_id", desafioId)
+        .order("ordem", { ascending: true }),
+      getPlanStatus(),
+    ])
     const desafioCarregado = (desafioData as DesafioClinico) ?? null
     setDesafio(desafioCarregado)
     setPerguntas((perguntasData as DesafioClinicoPergunta[]) ?? [])
@@ -97,16 +79,7 @@ export function DesafioClinicoEstudoContent({ desafioId }: Props) {
 
     if (desafioCarregado) {
       const hasFullAccess = planStatus?.hasFullAccess ?? true
-      const bloqueioPlano = bloqueadoPorPlano(desafioCarregado, hasFullAccess)
-      setBloqueadoPlanoGratuito(bloqueioPlano)
-
-      if (bloqueioPlano) {
-        setCasoAnteriorObrigatorio(null)
-      } else {
-        const anterior = desafioAnteriorObrigatorio(desafioCarregado, (todosDesafiosData as DesafioParaBloqueio[]) ?? [])
-        const historico = (historicoRes.data as unknown as HistoricoParaBloqueio[]) ?? []
-        setCasoAnteriorObrigatorio(anterior && !foiAprovado(anterior.id, historico) ? anterior : null)
-      }
+      setBloqueadoPlanoGratuito(bloqueadoPorPlano(desafioCarregado, hasFullAccess))
     }
   }
 
@@ -228,32 +201,22 @@ export function DesafioClinicoEstudoContent({ desafioId }: Props) {
     )
   }
 
-  if ((bloqueadoPlanoGratuito || casoAnteriorObrigatorio) && !isEditor) {
+  if (bloqueadoPlanoGratuito && !isEditor) {
     return (
       <div className="rounded-lg border border-border bg-card/50 p-8 text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted">
           <Lock className="h-7 w-7 text-muted-foreground" />
         </div>
-        <h1 className="mt-3 text-lg font-bold text-foreground">
-          {bloqueadoPlanoGratuito ? t.desafiosClinicos.casoBloqueadoPlanoTitulo : t.desafiosClinicos.casoBloqueadoTitulo}
-        </h1>
+        <h1 className="mt-3 text-lg font-bold text-foreground">{t.desafiosClinicos.casoBloqueadoPlanoTitulo}</h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-          {bloqueadoPlanoGratuito
-            ? t.desafiosClinicos.casoBloqueadoPlanoDescricao
-            : t.desafiosClinicos.casoBloqueadoDescricao(casoAnteriorObrigatorio!.titulo)}
+          {t.desafiosClinicos.casoBloqueadoPlanoDescricao}
         </p>
-        {bloqueadoPlanoGratuito ? (
-          <Link
-            href="/#pricing"
-            className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            {t.planBanner.cta}
-          </Link>
-        ) : (
-          <Link href="/dashboard/desafios-clinicos" className="mt-4 inline-block text-sm text-primary">
-            {t.desafiosClinicos.voltarAosDesafios}
-          </Link>
-        )}
+        <Link
+          href="/#pricing"
+          className="mt-4 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          {t.planBanner.cta}
+        </Link>
       </div>
     )
   }

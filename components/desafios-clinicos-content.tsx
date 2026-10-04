@@ -14,7 +14,7 @@ import { useIsContentEditor } from "@/lib/use-content-editor"
 import { DesafioClinicoEditDialog } from "@/components/desafio-clinico-edit-dialog"
 import type { DesafioClinico } from "@/lib/desafios-types"
 import { useLanguage } from "@/lib/i18n"
-import { desafioAnteriorObrigatorio, foiAprovado, bloqueadoPorPlano } from "@/lib/desafio-clinico-bloqueio"
+import { bloqueadoPorPlano } from "@/lib/desafio-clinico-bloqueio"
 import { getPlanStatus } from "@/lib/plan-status"
 
 const SEM_CATEGORIA = "sem_categoria"
@@ -73,29 +73,21 @@ function DesafioCover({ desafio }: { desafio: DesafioClinico }) {
 
 interface DesafioCardProps {
   desafio: DesafioClinico
-  todosDesafios: DesafioClinico[]
-  historico: HistoricoItem[]
   hasFullAccess: boolean
   isEditor: boolean
   onEdit: (desafio: DesafioClinico, e: MouseEvent) => void
   t: ReturnType<typeof useLanguage>["t"]
 }
 
-function DesafioCard({ desafio, todosDesafios, historico, hasFullAccess, isEditor, onEdit, t }: DesafioCardProps) {
-  const bloqueioPlano = !isEditor && bloqueadoPorPlano(desafio, hasFullAccess)
-  const anterior = bloqueioPlano ? null : desafioAnteriorObrigatorio(desafio, todosDesafios)
-  const bloqueioProgresso = !isEditor && !!anterior && !foiAprovado(anterior.id, historico)
-  const bloqueado = bloqueioPlano || bloqueioProgresso
+function DesafioCard({ desafio, hasFullAccess, isEditor, onEdit, t }: DesafioCardProps) {
+  const bloqueado = !isEditor && bloqueadoPorPlano(desafio, hasFullAccess)
 
   if (bloqueado) {
-    const tooltip = bloqueioPlano
-      ? t.desafiosClinicos.casoBloqueadoPlanoCard
-      : t.desafiosClinicos.casoBloqueadoCard(anterior!.titulo)
     return (
       <div
-        title={tooltip}
-        role={bloqueioPlano ? "button" : undefined}
-        onClick={bloqueioPlano ? () => alert(t.planRestricted.conteudoBloqueadoAlerta) : undefined}
+        title={t.desafiosClinicos.casoBloqueadoPlanoCard}
+        role="button"
+        onClick={() => alert(t.planRestricted.conteudoBloqueadoAlerta)}
         className="relative cursor-not-allowed overflow-hidden rounded-lg border border-border bg-card opacity-60"
       >
         <div className="relative">
@@ -290,8 +282,6 @@ export function DesafiosClinicosContent() {
                       <DesafioCard
                         key={desafio.id}
                         desafio={desafio}
-                        todosDesafios={desafios}
-                        historico={historico}
                         hasFullAccess={hasFullAccess}
                         isEditor={isEditor}
                         onEdit={openEdit}
