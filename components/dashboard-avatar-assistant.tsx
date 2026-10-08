@@ -45,6 +45,11 @@ const FAQ_TOPICOS: { id: string; tituloKey: TutorialStep["tituloKey"]; passos: T
   { id: "desempenho", tituloKey: "desempenhoTitulo", passos: passoUnico("desempenhoTitulo", "desempenhoTexto") },
   { id: "ranking", tituloKey: "rankingTitulo", passos: passoUnico("rankingTitulo", "rankingTexto") },
   { id: "comunidade", tituloKey: "comunidadeTitulo", passos: passoUnico("comunidadeTitulo", "comunidadeTexto") },
+  {
+    id: "planos-premium",
+    tituloKey: "planosTitulo",
+    passos: [{ tituloKey: "planosTitulo", textoKey: "planosTexto", selector: null, ctaWhatsapp: true }],
+  },
 ]
 
 export function DashboardAvatarAssistant() {

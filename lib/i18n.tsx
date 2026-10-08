@@ -1121,6 +1121,10 @@ const pt = {
     clicarParaFechar: "Toque no avatar para fechar",
     esconderAvatar: "Esconder avatar",
     mostrarAvatar: "Mostrar avatar",
+    planosTitulo: "Planos Premium",
+    planosTexto:
+      "Plano Grátis: até 60 questões, o primeiro caso de cada seção de Desafios Clínicos, as 2 primeiras cartas de cada baralho de Flashcards, acesso livre a todas as videoaulas e às suas estatísticas de desempenho — sem prazo de expiração, mas não entra no ranking. Planos Pagos (treino sem limites: simulados ilimitados, banco de questões completo, cronograma personalizado e ranking): Plano Mensal ($ 8.000/mês) ou Plano Trimestral ($ 18.000/trimestre, com desconto e suporte prioritário). Pagamento via Pix. Quer assinar ou tirar dúvidas? Chama no WhatsApp.",
+    planosWhatsapp: "Falar no WhatsApp",
     bemVindoTitulo: "Bem-vindo(a) à MedClass!",
     bemVindoTexto:
       "Antes de começar, vamos te mostrar rapidinho cada ferramenta da plataforma pra você saber exatamente onde encontrar cada coisa. São vários passos, mas vale a pena — depois você pode rever isso quando quiser.",
@@ -2326,6 +2330,10 @@ const es: typeof pt = {
     clicarParaFechar: "Tocá el avatar para cerrar",
     esconderAvatar: "Ocultar avatar",
     mostrarAvatar: "Mostrar avatar",
+    planosTitulo: "Planes Premium",
+    planosTexto:
+      "Plan Gratis: hasta 60 preguntas, el primer caso de cada sección de Desafíos Clínicos, las 2 primeras tarjetas de cada mazo de Flashcards, acceso libre a todas las videoclases y a tus estadísticas de desempeño — sin fecha de vencimiento, pero no entra en el ranking. Planes Pagos (entrená sin límites: simulacros ilimitados, banco de preguntas completo, cronograma personalizado y ranking): Plan Mensual ($ 8.000/mes) o Plan Trimestral ($ 18.000/trimestre, con descuento y soporte prioritario). Pago por transferencia (CBU/ALIAS). ¿Querés suscribirte o tenés dudas? Escribinos por WhatsApp.",
+    planosWhatsapp: "Hablar por WhatsApp",
     bemVindoTitulo: "¡Bienvenido/a a MedClass!",
     bemVindoTexto:
       "Antes de arrancar, te mostramos rápido cada herramienta de la plataforma para que sepas exactamente dónde encontrar cada cosa. Son varios pasos, pero vale la pena — después podés repasar esto cuando quieras.",

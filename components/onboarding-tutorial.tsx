@@ -44,7 +44,11 @@ export interface TutorialStep {
    *  usado quando uma pose com gesto direcional (ex.: apontando pra direita)
    *  confundiria com a posição real do elemento destacado na tela. */
   avatarIdx?: number
+  /** Mostra um botão extra de WhatsApp (ex.: passo "Planos Premium" do FAQ). */
+  ctaWhatsapp?: boolean
 }
+
+const WHATSAPP_SUPORTE_URL = "https://wa.me/543417214945"
 
 export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "bemVindoTitulo", textoKey: "bemVindoTexto", selector: null },
@@ -263,7 +267,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                 </p>
               </div>
 
-              <div className="mt-5 flex items-center justify-between gap-3">
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                 {passos.length > 1 ? (
                   <>
                     <Button type="button" variant="outline" onClick={encerrar}>
@@ -271,6 +275,17 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                     </Button>
                     <Button type="button" variant="gradient" onClick={avancar}>
                       {ultimo ? t.tutorialDashboard.entendido : t.tutorialDashboard.proximo}
+                    </Button>
+                  </>
+                ) : passo.ctaWhatsapp ? (
+                  <>
+                    <Button type="button" variant="outline" onClick={encerrar}>
+                      {t.tutorialDashboard.entendido}
+                    </Button>
+                    <Button type="button" asChild className="bg-[#25D366] text-white hover:bg-[#1ebe5a]">
+                      <a href={WHATSAPP_SUPORTE_URL} target="_blank" rel="noopener noreferrer">
+                        {t.tutorialDashboard.planosWhatsapp}
+                      </a>
                     </Button>
                   </>
                 ) : (
