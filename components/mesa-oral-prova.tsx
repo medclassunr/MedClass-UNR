@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import {
   carregarVozes,
+  diagnosticarErroMic,
   escolherVozEspanhol,
   falarTexto,
   GEMINI_VOZES_DISPONIVEIS,
@@ -263,8 +264,8 @@ export function MesaOralProva() {
           return t + 1
         })
       }, 1000)
-    } catch {
-      setErroMic("No se pudo acceder al micrófono. Podés escribir tu respuesta abajo.")
+    } catch (e) {
+      setErroMic(diagnosticarErroMic(e))
     }
   }
 

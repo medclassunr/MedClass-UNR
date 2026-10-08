@@ -129,6 +129,34 @@ export interface GravacaoEmAndamento {
   pararEObterAudio: () => Promise<Blob>
 }
 
+// Traduz o motivo real da falha do getUserMedia -- "não consegui acessar o
+// microfone" sozinho não dizia se era permissão negada, sem microfone
+// físico, microfone em uso por outro app, ou site fora de HTTPS.
+export function diagnosticarErroMic(erro: unknown): string {
+  if (erro instanceof Error && erro.message === "MIC_INDISPONIVEL") {
+    return "Este navegador no soporta grabación de audio. Probá con Chrome o Safari actualizados."
+  }
+  if (typeof window !== "undefined" && !window.isSecureContext) {
+    return "El sitio no está en una conexión segura (HTTPS) -- el navegador bloquea el micrófono en ese caso."
+  }
+  const nome = erro instanceof DOMException ? erro.name : null
+  switch (nome) {
+    case "NotAllowedError":
+    case "PermissionDeniedError":
+      return "Permiso de micrófono denegado. Revisá la configuración del sitio en tu navegador (ícono de candado/micrófono en la barra de direcciones) y permití el acceso."
+    case "NotFoundError":
+    case "DevicesNotFoundError":
+      return "No se encontró ningún micrófono en este dispositivo."
+    case "NotReadableError":
+    case "TrackStartError":
+      return "El micrófono está siendo usado por otra aplicación o pestaña. Cerrala e intentá de nuevo."
+    case "SecurityError":
+      return "El navegador bloqueó el acceso al micrófono por seguridad (contexto no confiable)."
+    default:
+      return "No se pudo acceder al micrófono. Podés escribir tu respuesta abajo."
+  }
+}
+
 export async function iniciarGravacao(): Promise<GravacaoEmAndamento> {
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
     throw new Error("MIC_INDISPONIVEL")
