@@ -1,5 +1,5 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { ComingSoonContent } from "@/components/coming-soon-content"
+import { MesaOralGate } from "@/components/mesa-oral-gate"
 
 export const metadata = {
   title: "Mesa Oral | MedClass",
@@ -9,7 +9,7 @@ export const metadata = {
 export default function MesaOralPage() {
   return (
     <DashboardLayout>
-      <ComingSoonContent feature="mesaOral" />
+      <MesaOralGate />
     </DashboardLayout>
   )
 }
