@@ -40,6 +40,10 @@ export interface TutorialStep {
   tituloKey: keyof TutorialCopy
   textoKey: keyof TutorialCopy
   selector: string | null
+  /** Fixa uma pose específica (índice de AVATAR_FRAMES) em vez de sortear --
+   *  usado quando uma pose com gesto direcional (ex.: apontando pra direita)
+   *  confundiria com a posição real do elemento destacado na tela. */
+  avatarIdx?: number
 }
 
 export const TOUR_COMPLETO: TutorialStep[] = [
@@ -52,7 +56,7 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "simuladoTimerTitulo", textoKey: "simuladoTimerTexto", selector: '[data-tutorial="tile-simulacro-timer"]' },
   { tituloKey: "desafiosTitulo", textoKey: "desafiosTexto", selector: '[data-tutorial="tile-desafios-clinicos"]' },
   { tituloKey: "hospitalTitulo", textoKey: "hospitalTexto", selector: '[data-tutorial="tile-hospital-simulacao"]' },
-  { tituloKey: "cronogramaTitulo", textoKey: "cronogramaTexto", selector: '[data-tutorial="tile-cronograma"]' },
+  { tituloKey: "cronogramaTitulo", textoKey: "cronogramaTexto", selector: '[data-tutorial="tile-cronograma"]', avatarIdx: 3 },
   { tituloKey: "atividadesUnrTitulo", textoKey: "atividadesUnrTexto", selector: '[data-tutorial="tile-atividades-unr"]' },
   { tituloKey: "calendarioTitulo", textoKey: "calendarioTexto", selector: '[data-tutorial="tile-calendario"]' },
   { tituloKey: "mesaOralTitulo", textoKey: "mesaOralTexto", selector: '[data-tutorial="tile-mesa-oral"]' },
@@ -110,11 +114,15 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Sorteia uma pose nova (nunca igual à anterior) toda vez que um passo
-  // novo é mostrado -- pedido explícito: aleatório, não sequencial.
+  // novo é mostrado -- pedido explícito: aleatório, não sequencial. Exceto
+  // quando o passo fixa uma pose (avatarIdx), pra evitar gesto direcional
+  // (ex.: apontando pra direita) que contradiga a posição real do elemento
+  // destacado na tela.
   useEffect(() => {
     if (!aberto) return
-    setAvatarIdx((anterior) => sortearPose(anterior))
-  }, [aberto, passoAtual])
+    const fixa = passos[passoAtual]?.avatarIdx
+    setAvatarIdx((anterior) => (fixa !== undefined ? fixa : sortearPose(anterior)))
+  }, [aberto, passoAtual, passos])
 
   // Tour completo sozinho só na 1ª vez (profiles.tutorial_dashboard_visto).
   useEffect(() => {
