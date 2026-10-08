@@ -4,7 +4,7 @@
 // barreira barata contra rajadas, no middleware.
 
 import { createAdminClient } from "@/lib/supabase-admin"
-import { estimarCustoChat, estimarCustoTranscricao } from "@/lib/oral-prova/pricing"
+import { estimarCustoChat, estimarCustoTranscricao, estimarCustoTts } from "@/lib/oral-prova/pricing"
 
 const LIMITE_DIARIO_POR_USUARIO = Number(process.env.ORAL_PROVA_LIMITE_DIARIO_USUARIO ?? 50)
 const LIMITE_DIARIO_GLOBAL = Number(process.env.ORAL_PROVA_LIMITE_DIARIO_GLOBAL ?? 500)
@@ -12,7 +12,7 @@ const LIMITE_DIARIO_GLOBAL = Number(process.env.ORAL_PROVA_LIMITE_DIARIO_GLOBAL 
 interface RegistrarUsoParams {
   examId: string | null
   userId: string
-  tipoChamada: "avaliacao" | "transcricao"
+  tipoChamada: "avaliacao" | "transcricao" | "tts"
   modelo: string
   tokensEntrada?: number
   tokensSaida?: number
@@ -26,7 +26,9 @@ export async function registrarUsoIA(params: RegistrarUsoParams): Promise<void> 
   const custoEstimado =
     params.tipoChamada === "avaliacao"
       ? estimarCustoChat(params.modelo, params.tokensEntrada ?? 0, params.tokensSaida ?? 0)
-      : estimarCustoTranscricao(params.segundosAudio ?? 0)
+      : params.tipoChamada === "tts"
+        ? estimarCustoTts(params.tokensSaida ?? 0)
+        : estimarCustoTranscricao(params.segundosAudio ?? 0)
 
   const { error } = await admin.from("oral_ai_usage").insert({
     exam_id: params.examId,

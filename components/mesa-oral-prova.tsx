@@ -5,10 +5,14 @@
 // lib/i18n.tsx) porque esse módulo, nesta fase, é visível só pra admin em
 // teste -- revisar antes de abrir pra alunos.
 //
-// Voz: TTS via SpeechSynthesis (grátis, sem backend). STT via
-// MediaRecorder + Whisper (backend) -- ver lib/mesa-oral-voz.ts pro porquê
-// de não depender do reconhecimento de voz nativo do navegador como via
-// principal.
+// Voz do professor: Gemini 3.8 Flash-Lite TTS (natural, com cache no
+// backend pra não gerar de novo o áudio das perguntas fixas). Se a
+// chamada falhar (chave não configurada, rate limit, etc.), cai pro
+// SpeechSynthesis do navegador automaticamente, sem travar o fluxo.
+//
+// Voz do aluno: MediaRecorder + Whisper (backend) -- ver
+// lib/mesa-oral-voz.ts pro porquê de não depender do reconhecimento de voz
+// nativo do navegador como via principal.
 
 import { useEffect, useRef, useState } from "react"
 import { Loader2, Mic, MicOff, Pause, Play, RotateCcw, Send, Square, Volume2, VolumeX } from "lucide-react"
@@ -18,6 +22,7 @@ import {
   carregarVozes,
   escolherVozEspanhol,
   falarTexto,
+  GEMINI_VOZES_DISPONIVEIS,
   iniciarGravacao,
   pararFala,
   type GravacaoEmAndamento,
@@ -98,12 +103,18 @@ export function MesaOralProva() {
   const [feedbackItem, setFeedbackItem] = useState<{ nota: number; pergunta: string } | null>(null)
   const [relatorio, setRelatorio] = useState<Relatorio | null>(null)
 
-  // -- Voz: TTS --
+  // -- Voz: TTS (Gemini, com fallback pro navegador) --
   const [vozes, setVozes] = useState<SpeechSynthesisVoice[]>([])
   const [vozEscolhida, setVozEscolhida] = useState<SpeechSynthesisVoice | null>(null)
+  const [vozGemini, setVozGemini] = useState("Kore")
   const [velocidade, setVelocidade] = useState(0.85)
-  const [tom, setTom] = useState(1)
+  const [tom] = useState(1) // só usado no fallback por SpeechSynthesis
   const [falando, setFalando] = useState(false)
+  const [carregandoAudio, setCarregandoAudio] = useState(false)
+  const [usandoFallbackNavegador, setUsandoFallbackNavegador] = useState(false)
+  const [reproducaoBloqueada, setReproducaoBloqueada] = useState(false)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // -- Voz: gravação/transcrição --
   const [gravando, setGravando] = useState(false)
@@ -123,10 +134,10 @@ export function MesaOralProva() {
 
   useEffect(() => {
     const nomeSalvo = localStorage.getItem("mesa-oral-voz-nome")
+    const vozGeminiSalva = localStorage.getItem("mesa-oral-voz-gemini")
     const velocidadeSalva = localStorage.getItem("mesa-oral-voz-velocidade")
-    const tomSalvo = localStorage.getItem("mesa-oral-voz-tom")
     if (velocidadeSalva) setVelocidade(Number(velocidadeSalva))
-    if (tomSalvo) setTom(Number(tomSalvo))
+    if (vozGeminiSalva) setVozGemini(vozGeminiSalva)
 
     carregarVozes().then((lista) => {
       setVozes(lista)
@@ -136,51 +147,73 @@ export function MesaOralProva() {
     return () => pararFala()
   }, [])
 
-  function escolherVoz(nome: string) {
-    const voz = vozes.find((v) => v.name === nome) ?? null
-    setVozEscolhida(voz)
-    if (voz) localStorage.setItem("mesa-oral-voz-nome", voz.name)
+  function escolherVozGemini(nome: string) {
+    setVozGemini(nome)
+    localStorage.setItem("mesa-oral-voz-gemini", nome)
   }
 
   function mudarVelocidade(valor: number) {
     setVelocidade(valor)
     localStorage.setItem("mesa-oral-voz-velocidade", String(valor))
+    if (audioRef.current) audioRef.current.playbackRate = valor
   }
 
-  function mudarTom(valor: number) {
-    setTom(valor)
-    localStorage.setItem("mesa-oral-voz-tom", String(valor))
+  // Toca a pergunta em voz alta -- tenta o áudio do Gemini primeiro, cai
+  // pro SpeechSynthesis do navegador se a chamada falhar por qualquer
+  // motivo (chave não configurada, rate limit, erro de rede).
+  async function reproduzir(texto: string) {
+    setFalando(true)
+    setReproducaoBloqueada(false)
+    setCarregandoAudio(true)
+    try {
+      const resp = await authedFetch("/api/mesa-oral/falar", { method: "POST", body: JSON.stringify({ texto, voz: vozGemini }) })
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error ?? "Error al generar audio.")
+      setUsandoFallbackNavegador(false)
+      setAudioUrl(data.url)
+    } catch {
+      setUsandoFallbackNavegador(true)
+      falarTexto(texto, {
+        voz: vozEscolhida,
+        velocidade,
+        tom,
+        onFim: () => setFalando(false),
+        onErro: () => setFalando(false),
+      })
+    } finally {
+      setCarregandoAudio(false)
+    }
   }
+
+  // Dispara o play() assim que a URL do áudio do Gemini estiver pronta.
+  useEffect(() => {
+    if (!audioUrl || !audioRef.current) return
+    audioRef.current.playbackRate = velocidade
+    audioRef.current.play().catch(() => {
+      // autoplay bloqueado pelo navegador -- mostra botão pra tocar manual
+      setReproducaoBloqueada(true)
+      setFalando(false)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioUrl])
 
   // Toca a pergunta em voz alta sempre que um turno novo é apresentado.
   useEffect(() => {
     if (!turnoAtual) return
-    setFalando(true)
-    falarTexto(turnoAtual.pergunta_texto, {
-      voz: vozEscolhida,
-      velocidade,
-      tom,
-      onFim: () => setFalando(false),
-      onErro: () => setFalando(false),
-    })
+    reproduzir(turnoAtual.pergunta_texto)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnoAtual?.id])
 
   function pararReproducao() {
     pararFala()
+    audioRef.current?.pause()
     setFalando(false)
+    setReproducaoBloqueada(false)
   }
 
   function repetirPergunta() {
     if (!turnoAtual) return
-    setFalando(true)
-    falarTexto(turnoAtual.pergunta_texto, {
-      voz: vozEscolhida,
-      velocidade,
-      tom,
-      onFim: () => setFalando(false),
-      onErro: () => setFalando(false),
-    })
+    reproduzir(turnoAtual.pergunta_texto)
   }
 
   // Mantém o item ativo -- precisamos do exam_item_id (não só o turno) pra
@@ -410,6 +443,13 @@ export function MesaOralProva() {
         )}
 
         <div className="rounded-2xl border border-border bg-card p-6">
+          <audio
+            ref={audioRef}
+            src={audioUrl ?? undefined}
+            onEnded={() => setFalando(false)}
+            onError={() => setFalando(false)}
+            className="hidden"
+          />
           <div className="mb-2 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
               <Mic className="h-3.5 w-3.5" /> PROFESOR VIRTUAL
@@ -425,26 +465,36 @@ export function MesaOralProva() {
             )}
           </div>
           <p className="text-base text-foreground">{turnoAtual.pergunta_texto}</p>
-          {falando && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-primary">
-              <Volume2 className="h-3.5 w-3.5 animate-pulse" /> Reproduciendo...
+
+          {carregandoAudio && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generando audio...
             </p>
+          )}
+          {falando && !carregandoAudio && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-primary">
+              <Volume2 className="h-3.5 w-3.5 animate-pulse" /> Reproduciendo{usandoFallbackNavegador ? " (voz del navegador)" : ""}...
+            </p>
+          )}
+          {reproducaoBloqueada && (
+            <Button variant="outline" size="sm" className="mt-2" onClick={() => audioRef.current?.play()}>
+              <Play className="h-3.5 w-3.5" /> Reproducir pregunta
+            </Button>
+          )}
+          {usandoFallbackNavegador && !falando && (
+            <p className="mt-2 text-[11px] text-amber-500">No se pudo generar el audio con IA -- se usó la voz del navegador.</p>
           )}
 
           <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
             <select
-              value={vozEscolhida?.name ?? ""}
-              onChange={(e) => escolherVoz(e.target.value)}
+              value={vozGemini}
+              onChange={(e) => escolherVozGemini(e.target.value)}
               className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
-              aria-label="Voz del profesor"
+              aria-label="Voz del profesor (IA)"
             >
-              {vozes.length === 0 && <option value="">Cargando voces...</option>}
-              {(vozes.filter((v) => v.lang.toLowerCase().startsWith("es")).length > 0
-                ? vozes.filter((v) => v.lang.toLowerCase().startsWith("es"))
-                : vozes
-              ).map((v) => (
-                <option key={v.name} value={v.name}>
-                  {v.name} ({v.lang}){v.lang.toLowerCase() === "es-ar" ? " · Argentina" : ""}
+              {GEMINI_VOZES_DISPONIVEIS.map((nome) => (
+                <option key={nome} value={nome}>
+                  {nome}
                 </option>
               ))}
             </select>
@@ -460,24 +510,10 @@ export function MesaOralProva() {
               <option value={1}>1x</option>
               <option value={1.15}>1.15x</option>
             </select>
-            <select
-              value={tom}
-              onChange={(e) => mudarTom(Number(e.target.value))}
-              className="rounded-md border border-border bg-background px-1.5 py-1 text-xs text-foreground"
-              aria-label="Tono de la voz"
-            >
-              <option value={0.8}>Tono grave</option>
-              <option value={1}>Tono normal</option>
-              <option value={1.2}>Tono agudo</option>
-            </select>
           </div>
-          {vozes.length > 0 && (
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              {vozes.some((v) => v.lang.toLowerCase() === "es-ar")
-                ? "✓ Hay voz de Argentina disponible en este dispositivo."
-                : "Este dispositivo no tiene una voz específica de Argentina instalada -- usando español genérico. Probá otro navegador/dispositivo si querés comparar."}
-            </p>
-          )}
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Voz generada por IA (Gemini) -- cambiá y escuchá de nuevo pra comparar cuál suena mejor en español.
+          </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-4">

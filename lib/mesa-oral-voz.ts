@@ -11,6 +11,42 @@
 // caminho mais confiável como padrão. A alternativa de digitar continua
 // sempre disponível.
 
+// Vozes pré-fabricadas do Gemini TTS (lista oficial completa) -- não dá
+// pra saber de antemão qual soa melhor em espanhol sem ouvir, por isso a
+// UI deixa o usuário trocar e comparar.
+export const GEMINI_VOZES_DISPONIVEIS = [
+  "Kore",
+  "Puck",
+  "Charon",
+  "Zephyr",
+  "Fenrir",
+  "Leda",
+  "Orus",
+  "Aoede",
+  "Callirrhoe",
+  "Autonoe",
+  "Enceladus",
+  "Iapetus",
+  "Umbriel",
+  "Algieba",
+  "Despina",
+  "Erinome",
+  "Algenib",
+  "Rasalgethi",
+  "Laomedeia",
+  "Achernar",
+  "Alnilam",
+  "Schedar",
+  "Gacrux",
+  "Pulcherrima",
+  "Achird",
+  "Zubenelgenubi",
+  "Vindemiatrix",
+  "Sadachbia",
+  "Sadaltager",
+  "Sulafat",
+]
+
 let vozesCache: SpeechSynthesisVoice[] | null = null
 
 export function carregarVozes(): Promise<SpeechSynthesisVoice[]> {

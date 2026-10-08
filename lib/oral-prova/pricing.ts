@@ -19,6 +19,12 @@ const PRECOS_USD_POR_1M_TOKENS: Record<string, { entrada: number; saida: number 
 
 const PRECO_WHISPER_USD_POR_HORA = Number(process.env.GROQ_PRECO_WHISPER_USD_HORA ?? 0.04)
 
+// Gemini 3.8 Flash-Lite TTS tem camada gratuita (confirmado na doc oficial
+// em 2026-10-08) -- esse preço só é cobrado se/quando o uso ultrapassar os
+// limites grátis. $6/1M tokens de áudio é o valor vigente até 2026-12-31
+// segundo a tabela de preços no momento em que conferi.
+const PRECO_GEMINI_TTS_USD_POR_1M_TOKENS = Number(process.env.GEMINI_PRECO_TTS_USD_1M ?? 6.0)
+
 export function estimarCustoChat(modelo: string, tokensEntrada: number, tokensSaida: number): number {
   const preco = PRECOS_USD_POR_1M_TOKENS[modelo] ?? PRECOS_USD_POR_1M_TOKENS["openai/gpt-oss-20b"]
   return (tokensEntrada / 1_000_000) * preco.entrada + (tokensSaida / 1_000_000) * preco.saida
@@ -26,4 +32,8 @@ export function estimarCustoChat(modelo: string, tokensEntrada: number, tokensSa
 
 export function estimarCustoTranscricao(segundos: number): number {
   return (segundos / 3600) * PRECO_WHISPER_USD_POR_HORA
+}
+
+export function estimarCustoTts(tokensSaida: number): number {
+  return (tokensSaida / 1_000_000) * PRECO_GEMINI_TTS_USD_POR_1M_TOKENS
 }
