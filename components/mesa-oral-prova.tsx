@@ -101,7 +101,8 @@ export function MesaOralProva() {
   // -- Voz: TTS --
   const [vozes, setVozes] = useState<SpeechSynthesisVoice[]>([])
   const [vozEscolhida, setVozEscolhida] = useState<SpeechSynthesisVoice | null>(null)
-  const [velocidade, setVelocidade] = useState(1)
+  const [velocidade, setVelocidade] = useState(0.85)
+  const [tom, setTom] = useState(1)
   const [falando, setFalando] = useState(false)
 
   // -- Voz: gravação/transcrição --
@@ -121,12 +122,35 @@ export function MesaOralProva() {
   }, [])
 
   useEffect(() => {
+    const nomeSalvo = localStorage.getItem("mesa-oral-voz-nome")
+    const velocidadeSalva = localStorage.getItem("mesa-oral-voz-velocidade")
+    const tomSalvo = localStorage.getItem("mesa-oral-voz-tom")
+    if (velocidadeSalva) setVelocidade(Number(velocidadeSalva))
+    if (tomSalvo) setTom(Number(tomSalvo))
+
     carregarVozes().then((lista) => {
       setVozes(lista)
-      setVozEscolhida(escolherVozEspanhol(lista))
+      const salva = nomeSalvo ? lista.find((v) => v.name === nomeSalvo) : null
+      setVozEscolhida(salva ?? escolherVozEspanhol(lista))
     })
     return () => pararFala()
   }, [])
+
+  function escolherVoz(nome: string) {
+    const voz = vozes.find((v) => v.name === nome) ?? null
+    setVozEscolhida(voz)
+    if (voz) localStorage.setItem("mesa-oral-voz-nome", voz.name)
+  }
+
+  function mudarVelocidade(valor: number) {
+    setVelocidade(valor)
+    localStorage.setItem("mesa-oral-voz-velocidade", String(valor))
+  }
+
+  function mudarTom(valor: number) {
+    setTom(valor)
+    localStorage.setItem("mesa-oral-voz-tom", String(valor))
+  }
 
   // Toca a pergunta em voz alta sempre que um turno novo é apresentado.
   useEffect(() => {
@@ -135,6 +159,7 @@ export function MesaOralProva() {
     falarTexto(turnoAtual.pergunta_texto, {
       voz: vozEscolhida,
       velocidade,
+      tom,
       onFim: () => setFalando(false),
       onErro: () => setFalando(false),
     })
@@ -152,6 +177,7 @@ export function MesaOralProva() {
     falarTexto(turnoAtual.pergunta_texto, {
       voz: vozEscolhida,
       velocidade,
+      tom,
       onFim: () => setFalando(false),
       onErro: () => setFalando(false),
     })
@@ -388,32 +414,68 @@ export function MesaOralProva() {
             <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
               <Mic className="h-3.5 w-3.5" /> PROFESOR VIRTUAL
             </div>
-            <div className="flex items-center gap-1.5">
-              <select
-                value={velocidade}
-                onChange={(e) => setVelocidade(Number(e.target.value))}
-                className="rounded-md border border-border bg-background px-1.5 py-0.5 text-xs text-foreground"
-                aria-label="Velocidad de la voz"
-              >
-                <option value={0.75}>0.75x</option>
-                <option value={1}>1x</option>
-                <option value={1.25}>1.25x</option>
-              </select>
-              {falando ? (
-                <Button variant="outline" size="icon-sm" onClick={pararReproducao} aria-label="Detener">
-                  <VolumeX className="h-3.5 w-3.5" />
-                </Button>
-              ) : (
-                <Button variant="outline" size="icon-sm" onClick={repetirPergunta} aria-label="Escuchar de nuevo">
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
+            {falando ? (
+              <Button variant="outline" size="icon-sm" onClick={pararReproducao} aria-label="Detener">
+                <VolumeX className="h-3.5 w-3.5" />
+              </Button>
+            ) : (
+              <Button variant="outline" size="icon-sm" onClick={repetirPergunta} aria-label="Escuchar de nuevo">
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
           <p className="text-base text-foreground">{turnoAtual.pergunta_texto}</p>
           {falando && (
             <p className="mt-2 flex items-center gap-1.5 text-xs text-primary">
               <Volume2 className="h-3.5 w-3.5 animate-pulse" /> Reproduciendo...
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+            <select
+              value={vozEscolhida?.name ?? ""}
+              onChange={(e) => escolherVoz(e.target.value)}
+              className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+              aria-label="Voz del profesor"
+            >
+              {vozes.length === 0 && <option value="">Cargando voces...</option>}
+              {(vozes.filter((v) => v.lang.toLowerCase().startsWith("es")).length > 0
+                ? vozes.filter((v) => v.lang.toLowerCase().startsWith("es"))
+                : vozes
+              ).map((v) => (
+                <option key={v.name} value={v.name}>
+                  {v.name} ({v.lang}){v.lang.toLowerCase() === "es-ar" ? " · Argentina" : ""}
+                </option>
+              ))}
+            </select>
+            <select
+              value={velocidade}
+              onChange={(e) => mudarVelocidade(Number(e.target.value))}
+              className="rounded-md border border-border bg-background px-1.5 py-1 text-xs text-foreground"
+              aria-label="Velocidad de la voz"
+            >
+              <option value={0.6}>0.6x</option>
+              <option value={0.7}>0.7x</option>
+              <option value={0.85}>0.85x</option>
+              <option value={1}>1x</option>
+              <option value={1.15}>1.15x</option>
+            </select>
+            <select
+              value={tom}
+              onChange={(e) => mudarTom(Number(e.target.value))}
+              className="rounded-md border border-border bg-background px-1.5 py-1 text-xs text-foreground"
+              aria-label="Tono de la voz"
+            >
+              <option value={0.8}>Tono grave</option>
+              <option value={1}>Tono normal</option>
+              <option value={1.2}>Tono agudo</option>
+            </select>
+          </div>
+          {vozes.length > 0 && (
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              {vozes.some((v) => v.lang.toLowerCase() === "es-ar")
+                ? "✓ Hay voz de Argentina disponible en este dispositivo."
+                : "Este dispositivo no tiene una voz específica de Argentina instalada -- usando español genérico. Probá otro navegador/dispositivo si querés comparar."}
             </p>
           )}
         </div>

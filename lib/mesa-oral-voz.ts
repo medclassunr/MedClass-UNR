@@ -48,7 +48,13 @@ export function escolherVozEspanhol(vozes: SpeechSynthesisVoice[]): SpeechSynthe
 
 export function falarTexto(
   texto: string,
-  opcoes: { voz: SpeechSynthesisVoice | null; velocidade: number; onFim?: () => void; onErro?: () => void }
+  opcoes: {
+    voz: SpeechSynthesisVoice | null
+    velocidade: number
+    tom?: number
+    onFim?: () => void
+    onErro?: () => void
+  }
 ): SpeechSynthesisUtterance | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null
 
@@ -58,6 +64,7 @@ export function falarTexto(
   if (opcoes.voz) utterance.voice = opcoes.voz
   utterance.lang = opcoes.voz?.lang ?? "es-AR"
   utterance.rate = opcoes.velocidade
+  utterance.pitch = opcoes.tom ?? 1
   utterance.onend = () => opcoes.onFim?.()
   utterance.onerror = () => opcoes.onErro?.()
 
