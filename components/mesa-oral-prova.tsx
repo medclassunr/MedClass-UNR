@@ -1,14 +1,27 @@
 "use client"
 
-// UI mínima da Fase 1 do protótipo "Prova Oral con IA" -- só texto (sem voz
-// ainda, isso é Fase 2). Texto da interface em espanhol direto (não passa
-// pelo sistema pt/es de lib/i18n.tsx) porque esse módulo, nesta fase, é
-// visível só pra admin em teste -- revisar antes de abrir pra alunos.
+// UI do protótipo "Prova Oral con IA" -- Fase 1 (texto) + Fase 2 (voz).
+// Texto da interface em espanhol direto (não passa pelo sistema pt/es de
+// lib/i18n.tsx) porque esse módulo, nesta fase, é visível só pra admin em
+// teste -- revisar antes de abrir pra alunos.
+//
+// Voz: TTS via SpeechSynthesis (grátis, sem backend). STT via
+// MediaRecorder + Whisper (backend) -- ver lib/mesa-oral-voz.ts pro porquê
+// de não depender do reconhecimento de voz nativo do navegador como via
+// principal.
 
-import { useEffect, useState } from "react"
-import { Loader2, Mic, Pause, Play, Send, Square } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Loader2, Mic, MicOff, Pause, Play, RotateCcw, Send, Square, Volume2, VolumeX } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
+import {
+  carregarVozes,
+  escolherVozEspanhol,
+  falarTexto,
+  iniciarGravacao,
+  pararFala,
+  type GravacaoEmAndamento,
+} from "@/lib/mesa-oral-voz"
 
 async function authedFetch(input: string, init: RequestInit = {}) {
   const { data } = await supabase.auth.getSession()
@@ -18,6 +31,14 @@ async function authedFetch(input: string, init: RequestInit = {}) {
     headers: { ...(init.headers ?? {}), Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
   })
 }
+
+async function authedUpload(input: string, formData: FormData) {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  return fetch(input, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData })
+}
+
+const DURACAO_MAXIMA_GRAVACAO_SEGUNDOS = 120
 
 type Modo = "entrenamiento" | "examen"
 
@@ -77,12 +98,64 @@ export function MesaOralProva() {
   const [feedbackItem, setFeedbackItem] = useState<{ nota: number; pergunta: string } | null>(null)
   const [relatorio, setRelatorio] = useState<Relatorio | null>(null)
 
+  // -- Voz: TTS --
+  const [vozes, setVozes] = useState<SpeechSynthesisVoice[]>([])
+  const [vozEscolhida, setVozEscolhida] = useState<SpeechSynthesisVoice | null>(null)
+  const [velocidade, setVelocidade] = useState(1)
+  const [falando, setFalando] = useState(false)
+
+  // -- Voz: gravação/transcrição --
+  const [gravando, setGravando] = useState(false)
+  const [tempoGravacao, setTempoGravacao] = useState(0)
+  const [processandoAudio, setProcessandoAudio] = useState(false)
+  const [erroMic, setErroMic] = useState<string | null>(null)
+  const [transcricaoOriginal, setTranscricaoOriginal] = useState<string | null>(null)
+  const gravacaoRef = useRef<GravacaoEmAndamento | null>(null)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   useEffect(() => {
     authedFetch("/api/mesa-oral/historico")
       .then((r) => r.json())
       .then((data) => setHistorico(data.provas ?? []))
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    carregarVozes().then((lista) => {
+      setVozes(lista)
+      setVozEscolhida(escolherVozEspanhol(lista))
+    })
+    return () => pararFala()
+  }, [])
+
+  // Toca a pergunta em voz alta sempre que um turno novo é apresentado.
+  useEffect(() => {
+    if (!turnoAtual) return
+    setFalando(true)
+    falarTexto(turnoAtual.pergunta_texto, {
+      voz: vozEscolhida,
+      velocidade,
+      onFim: () => setFalando(false),
+      onErro: () => setFalando(false),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turnoAtual?.id])
+
+  function pararReproducao() {
+    pararFala()
+    setFalando(false)
+  }
+
+  function repetirPergunta() {
+    if (!turnoAtual) return
+    setFalando(true)
+    falarTexto(turnoAtual.pergunta_texto, {
+      voz: vozEscolhida,
+      velocidade,
+      onFim: () => setFalando(false),
+      onErro: () => setFalando(false),
+    })
+  }
 
   // Mantém o item ativo -- precisamos do exam_item_id (não só o turno) pra
   // mandar a resposta. O turno "iniciar"/"retomar" não devolve isso direto
@@ -114,17 +187,68 @@ export function MesaOralProva() {
     }
   }
 
+  async function iniciarGravacaoResposta() {
+    setErro(null)
+    setErroMic(null)
+    try {
+      const gravacao = await iniciarGravacao()
+      gravacaoRef.current = gravacao
+      setGravando(true)
+      setTempoGravacao(0)
+      timerRef.current = setInterval(() => {
+        setTempoGravacao((t) => {
+          if (t + 1 >= DURACAO_MAXIMA_GRAVACAO_SEGUNDOS) {
+            pararGravacaoResposta()
+            return t
+          }
+          return t + 1
+        })
+      }, 1000)
+    } catch {
+      setErroMic("No se pudo acceder al micrófono. Podés escribir tu respuesta abajo.")
+    }
+  }
+
+  async function pararGravacaoResposta() {
+    if (!gravacaoRef.current || !examId) return
+    if (timerRef.current) clearInterval(timerRef.current)
+    setGravando(false)
+    setProcessandoAudio(true)
+    try {
+      const blob = await gravacaoRef.current.pararEObterAudio()
+      gravacaoRef.current = null
+
+      const formData = new FormData()
+      formData.append("audio", blob, "resposta.webm")
+      formData.append("examId", examId)
+
+      const resp = await authedUpload("/api/mesa-oral/transcrever", formData)
+      const data = await resp.json()
+      if (!resp.ok) throw new Error(data.error ?? "Error al transcribir el audio.")
+
+      setResposta(data.texto ?? "")
+      setTranscricaoOriginal(data.texto ?? "")
+    } catch (e) {
+      setErroMic(e instanceof Error ? e.message : "Error al transcribir el audio. Podés escribir tu respuesta.")
+    } finally {
+      setProcessandoAudio(false)
+    }
+  }
+
   async function enviarResposta() {
     if (!examId || !examItemId || !resposta.trim()) return
     setCarregando(true)
     setErro(null)
     try {
+      const modalidadeResposta = transcricaoOriginal !== null ? "voz" : "texto"
       const resp = await authedFetch("/api/mesa-oral/responder", {
         method: "POST",
         body: JSON.stringify({
           examId,
           examItemId,
           respostaTexto: resposta,
+          modalidadeResposta,
+          respostaTranscricaoOriginal: transcricaoOriginal ?? undefined,
           idempotencyKey: `${examItemId}-${Date.now()}`,
         }),
       })
@@ -132,6 +256,7 @@ export function MesaOralProva() {
       if (!resp.ok) throw new Error(data.error ?? "Error al evaluar la respuesta.")
 
       setResposta("")
+      setTranscricaoOriginal(null)
 
       if (data.provaFinalizada) {
         await abrirRelatorio(examId)
@@ -160,12 +285,14 @@ export function MesaOralProva() {
 
   async function pausarProva() {
     if (!examId) return
+    pararReproducao()
     await authedFetch("/api/mesa-oral/pausar", { method: "POST", body: JSON.stringify({ examId }) })
     setTela("inicio")
   }
 
   async function finalizarProva() {
     if (!examId) return
+    pararReproducao()
     setCarregando(true)
     try {
       await authedFetch("/api/mesa-oral/finalizar", { method: "POST", body: JSON.stringify({ examId }) })
@@ -257,23 +384,92 @@ export function MesaOralProva() {
         )}
 
         <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-            <Mic className="h-3.5 w-3.5" /> PROFESOR VIRTUAL
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+              <Mic className="h-3.5 w-3.5" /> PROFESOR VIRTUAL
+            </div>
+            <div className="flex items-center gap-1.5">
+              <select
+                value={velocidade}
+                onChange={(e) => setVelocidade(Number(e.target.value))}
+                className="rounded-md border border-border bg-background px-1.5 py-0.5 text-xs text-foreground"
+                aria-label="Velocidad de la voz"
+              >
+                <option value={0.75}>0.75x</option>
+                <option value={1}>1x</option>
+                <option value={1.25}>1.25x</option>
+              </select>
+              {falando ? (
+                <Button variant="outline" size="icon-sm" onClick={pararReproducao} aria-label="Detener">
+                  <VolumeX className="h-3.5 w-3.5" />
+                </Button>
+              ) : (
+                <Button variant="outline" size="icon-sm" onClick={repetirPergunta} aria-label="Escuchar de nuevo">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
           <p className="text-base text-foreground">{turnoAtual.pergunta_texto}</p>
+          {falando && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-primary">
+              <Volume2 className="h-3.5 w-3.5 animate-pulse" /> Reproduciendo...
+            </p>
+          )}
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs font-semibold text-muted-foreground">Tu respuesta</p>
+            {!gravando && !processandoAudio && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={iniciarGravacaoResposta}
+                disabled={falando || carregando}
+                title={falando ? "Esperá a que termine de hablar el profesor" : "Grabar respuesta por voz"}
+              >
+                <Mic className="h-3.5 w-3.5" /> Grabar
+              </Button>
+            )}
+            {gravando && (
+              <Button variant="destructive" size="sm" onClick={pararGravacaoResposta}>
+                <Square className="h-3.5 w-3.5" /> Detener ({tempoGravacao}s)
+              </Button>
+            )}
+            {processandoAudio && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Transcribiendo...
+              </span>
+            )}
+          </div>
+
+          {gravando && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-destructive" /> Grabando... (máx. {DURACAO_MAXIMA_GRAVACAO_SEGUNDOS}s)
+            </div>
+          )}
+          {erroMic && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+              <MicOff className="h-3.5 w-3.5" /> {erroMic}
+            </div>
+          )}
+          {transcricaoOriginal !== null && (
+            <p className="mb-2 text-xs text-muted-foreground">Transcripción lista -- revisá y corregí si hace falta antes de enviar.</p>
+          )}
+
           <textarea
             value={resposta}
-            onChange={(e) => setResposta(e.target.value)}
-            placeholder="Escribí tu respuesta acá... (modalidad por voz llega en la próxima fase)"
+            onChange={(e) => {
+              setResposta(e.target.value)
+            }}
+            placeholder="Escribí tu respuesta acá, o grabá por voz con el botón de arriba..."
             rows={5}
             className="w-full resize-none rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none focus:border-primary"
-            disabled={carregando}
+            disabled={carregando || gravando || processandoAudio}
           />
           <div className="mt-3 flex justify-end">
-            <Button onClick={enviarResposta} disabled={carregando || !resposta.trim()}>
+            <Button onClick={enviarResposta} disabled={carregando || gravando || processandoAudio || !resposta.trim()}>
               {carregando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Enviar respuesta
             </Button>
@@ -297,7 +493,7 @@ export function MesaOralProva() {
           </div>
           <div>
             <dt className="text-muted-foreground">Idioma</dt>
-            <dd className="font-semibold text-foreground">Español</dd>
+            <dd className="font-semibold text-foreground">Español{vozEscolhida ? ` (voz: ${vozEscolhida.name})` : ""}</dd>
           </div>
           <div>
             <dt className="text-muted-foreground">Complementarias</dt>
@@ -305,7 +501,7 @@ export function MesaOralProva() {
           </div>
           <div>
             <dt className="text-muted-foreground">Modalidad</dt>
-            <dd className="font-semibold text-foreground">Texto (voz: próxima fase)</dd>
+            <dd className="font-semibold text-foreground">Voz o texto</dd>
           </div>
         </dl>
 

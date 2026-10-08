@@ -154,6 +154,10 @@ export async function avaliarTurno(params: {
   examItemId: string
   respostaTexto: string
   modalidadeResposta: "texto" | "voz"
+  // Transcrição bruta do Whisper, antes de qualquer edição do aluno -- só
+  // preenchido quando modalidadeResposta é "voz" e o aluno corrigiu o
+  // texto antes de enviar (auditoria, pedido explícito do prompt original).
+  respostaTranscricaoOriginal?: string
   idempotencyKey?: string
 }): Promise<ResultadoAvaliarTurno> {
   const db = createAdminClient()
@@ -301,6 +305,7 @@ export async function avaliarTurno(params: {
     .from("oral_exam_turns")
     .update({
       resposta_texto: respostaTexto,
+      resposta_transcricao_original: params.respostaTranscricaoOriginal ?? null,
       modalidade_resposta: params.modalidadeResposta,
       avaliacao: avaliacao as unknown as Record<string, unknown>,
       idempotency_key: params.idempotencyKey ?? null,

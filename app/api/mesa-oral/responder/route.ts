@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   if (!admin) return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
 
   const body = await request.json().catch(() => ({}))
-  const { examId, examItemId, respostaTexto, idempotencyKey } = body
+  const { examId, examItemId, respostaTexto, idempotencyKey, modalidadeResposta, respostaTranscricaoOriginal } = body
 
   if (typeof examId !== "string" || typeof examItemId !== "string" || typeof respostaTexto !== "string") {
     return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 })
@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
       examId,
       examItemId,
       respostaTexto,
-      modalidadeResposta: "texto",
+      modalidadeResposta: modalidadeResposta === "voz" ? "voz" : "texto",
+      respostaTranscricaoOriginal: typeof respostaTranscricaoOriginal === "string" ? respostaTranscricaoOriginal : undefined,
       idempotencyKey: typeof idempotencyKey === "string" ? idempotencyKey : undefined,
     })
     return NextResponse.json(resultado)

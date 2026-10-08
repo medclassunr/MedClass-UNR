@@ -121,6 +121,51 @@ export async function groqChatCompletion(params: GroqChatParams): Promise<GroqCh
   return { content, model: data.model ?? model, usage }
 }
 
+const GROQ_TRANSCRIPTION_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
+
+export interface GroqTranscricaoResultado {
+  text: string
+  duracaoSegundos: number | null
+}
+
+// Transcrição via Whisper -- preserva o idioma original (nunca usa o
+// endpoint /translations, que traduziria pro inglês). "language" é um
+// HINT pro modelo, não uma garantia de que vai ignorar outro idioma falado.
+export async function groqTranscreverAudio(params: {
+  arquivo: Blob
+  nomeArquivo: string
+  idioma?: string
+}): Promise<GroqTranscricaoResultado> {
+  const apiKey = process.env.GROQ_API_KEY
+  if (!apiKey) throw new GroqNaoConfiguradoError()
+
+  const modelo = process.env.GROQ_TRANSCRIPTION_MODEL ?? "whisper-large-v3-turbo"
+
+  const formData = new FormData()
+  formData.append("file", params.arquivo, params.nomeArquivo)
+  formData.append("model", modelo)
+  formData.append("response_format", "verbose_json")
+  if (params.idioma) formData.append("language", params.idioma)
+
+  const resposta = await fetch(GROQ_TRANSCRIPTION_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: formData,
+  })
+
+  if (resposta.status === 429) {
+    const retryAfterHeader = resposta.headers.get("retry-after")
+    throw new GroqRateLimitError(retryAfterHeader ? Number(retryAfterHeader) : null)
+  }
+  if (!resposta.ok) {
+    const texto = await resposta.text().catch(() => "")
+    throw new GroqApiError(resposta.status, texto)
+  }
+
+  const data = await resposta.json()
+  return { text: data.text ?? "", duracaoSegundos: typeof data.duration === "number" ? data.duration : null }
+}
+
 // Tenta o modelo pedido; se a Groq responder erro de servidor (5xx) ou o
 // modelo estiver indisponível, tenta UMA vez com GROQ_FALLBACK_MODEL (se
 // configurado). 429 nunca aciona o fallback nem retry automático -- quem
