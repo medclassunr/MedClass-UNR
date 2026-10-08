@@ -11,6 +11,7 @@ import { NotificationsPanel } from "@/components/notifications-panel"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { WhatsappHeaderButtons } from "@/components/whatsapp-header-buttons"
+import { PageHelpButton } from "@/components/page-help-button"
 import { getPlanStatus } from "@/lib/plan-status"
 import { useLanguage } from "@/lib/i18n"
 
@@ -63,6 +64,7 @@ export function DashboardHeader() {
 
       <div className="ml-auto flex items-center gap-2 md:ml-0">
         <WhatsappHeaderButtons hasFullAccess={hasFullAccess} />
+        <PageHelpButton />
         <ThemeToggle />
         <LanguageSwitcher />
         <NotificationsPanel />

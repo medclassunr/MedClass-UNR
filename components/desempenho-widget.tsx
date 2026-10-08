@@ -56,7 +56,7 @@ export function DesempenhoWidget() {
   }, [attempts])
 
   return (
-    <Card className="border border-border bg-card p-6">
+    <Card data-tutorial="desempenho-widget" className="border border-border bg-card p-6">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="flex items-center gap-2.5 font-semibold text-foreground">
           <IconChip icon={BarChart3} size="sm" className="bg-gradient-to-br from-lime-400 to-green-600 shadow-green-900/30" />

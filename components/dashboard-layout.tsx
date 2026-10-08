@@ -5,6 +5,7 @@ import { PlanExpiredBanner } from "@/components/plan-expired-banner"
 import { FreePlanBanner } from "@/components/free-plan-banner"
 import { ClaimPendingPayment } from "@/components/claim-pending-payment"
 import { CalendarioLembretesBanner } from "@/components/calendario-lembretes-banner"
+import { TutorialProvider } from "@/components/onboarding-tutorial"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -14,20 +15,22 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, fullWidth }: DashboardLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-background">
-      <CollapsibleSidebar />
+    <TutorialProvider>
+      <div className="flex min-h-screen bg-background">
+        <CollapsibleSidebar />
 
-      {/* Main column */}
-      <div className="min-w-0 flex-1">
-        <ClaimPendingPayment />
-        <DashboardHeader />
-        <PlanExpiredBanner />
-        <FreePlanBanner />
-        <CalendarioLembretesBanner />
-        <main className={fullWidth ? "px-4 py-6 sm:px-6 lg:px-8" : "mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"}>
-          {children}
-        </main>
+        {/* Main column */}
+        <div className="min-w-0 flex-1">
+          <ClaimPendingPayment />
+          <DashboardHeader />
+          <PlanExpiredBanner />
+          <FreePlanBanner />
+          <CalendarioLembretesBanner />
+          <main className={fullWidth ? "px-4 py-6 sm:px-6 lg:px-8" : "mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"}>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </TutorialProvider>
   )
 }

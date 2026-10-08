@@ -1111,6 +1111,63 @@ const pt = {
       "Tem um resumo, esquema ou vídeo que te ajudou a entender aquele tema difícil? Compartilhe com a turma! Dicas de organização de estudos, dúvidas e críticas construtivas também têm espaço na Página de Feedback — cada contribuição sua ajuda a melhorar o MedClass para todos os alunos da UNR.",
     cta: "Contribuir agora",
   },
+  tutorialDashboard: {
+    contadorPasso: "Passo {atual} de {total}",
+    pular: "Pular tutorial",
+    proximo: "Próximo",
+    entendido: "Entendi!",
+    reverBotao: "Rever tutorial",
+    bemVindoTitulo: "Bem-vindo(a) à MedClass!",
+    bemVindoTexto:
+      "Antes de começar, vamos te mostrar rapidinho cada ferramenta da plataforma pra você saber exatamente onde encontrar cada coisa. São vários passos, mas vale a pena — depois você pode rever isso quando quiser.",
+    tipTitulo: "Dica do dia",
+    tipTexto: "Todo dia aparece uma dica de estudo diferente aqui em cima — é só inspiração rápida, não precisa fazer nada com isso.",
+    streakTitulo: "Sua sequência diária",
+    streakTexto:
+      "O fogo conta quantos dias seguidos você estudou. Cada simulado, desafio clínico ou caso de hospital que você terminar soma no contador — não deixe apagar.",
+    progressoTitulo: "Seu Progresso",
+    progressoTexto:
+      "Esses 4 cartões resumem seu desempenho geral: % de acertos, questões respondidas, tempo total de estudo e quantos simulados você fez nos últimos 7 dias. Atualizam sozinhos a cada prática.",
+    gridTitulo: "O Que Fazer Agora",
+    gridTexto: "Aqui ficam os atalhos pras principais ferramentas de estudo. Vamos repassar cada um.",
+    simuladoLivreTitulo: "Simulacro Livre",
+    simuladoLivreTexto:
+      "Pratique sem pressão: escolhe matéria, ano e quantidade de questões, navega livre entre elas (pode voltar), e vê se acertou ou errou na hora. Ideal pra revisar conteúdo.",
+    simuladoTimerTitulo: "Simulacro Timer Test",
+    simuladoTimerTexto:
+      "Mesmo banco de questões, mas em modo prova de verdade: tempo limite por questão (30 a 180 segundos), não dá pra voltar nem pular — se o tempo acabar, conta como erro. Treina o ritmo da prova real.",
+    desafiosTitulo: "Desafios Clínicos",
+    desafiosTexto:
+      "Casos clínicos completos, passo a passo: anamnese, exame físico, exames complementares, diagnóstico e conduta, com correção imediata em cada etapa. O primeiro caso de cada bloco é grátis; o resto libera com plano pago.",
+    hospitalTitulo: "Hospital Simulação",
+    hospitalTexto:
+      "Simulação interativa de plantão de verdade: você toma decisões clínicas em tempo real e o sistema registra pressão arterial, erros, tempo até a intervenção e se o paciente sobrevive. Disponível só pra planos pagos.",
+    cronogramaTitulo: "Cronograma",
+    cronogramaTexto:
+      "Monte sua rotina pessoal de estudo: escolhe matéria, horário e em quais dias da semana repetir. Daqui você também pode iniciar uma sessão de prática com um toque.",
+    atividadesUnrTitulo: "Actividades en la UNR",
+    atividadesUnrTexto:
+      "A agenda real do dia na Faculdade de Ciências Médicas (aulas, práticos, seminários), direto da Bedelía — não é conteúdo de prova, é seu cronograma de cursada de verdade.",
+    calendarioTitulo: "Calendario",
+    calendarioTexto:
+      "Datas oficiais importantes: inscrições, provas, eventos da comunidade. Diferente do Cronograma (que é sua rotina pessoal) — aqui você pode ativar lembretes ou adicionar seus próprios eventos.",
+    mesaOralTitulo: "Mesa Oral",
+    mesaOralTexto: "Simulação de prova oral com devolutiva imediata — ainda em desenvolvimento, em breve você vai poder praticar aqui também.",
+    materiaisTitulo: "Materiais",
+    materiaisTexto:
+      "No menu lateral você encontra \"Materiais\": videoaulas (abertas pra todos), resumos e flashcards organizados por matéria. No plano gratuito o acesso é limitado — os planos pagos liberam tudo.",
+    desempenhoTitulo: "Seu Desempenho",
+    desempenhoTexto:
+      "Aqui você vê sua taxa de acerto, o total de questões respondidas com a tendência recente, e seus pontos acumulados. Toque em \"Ver estatísticas\" pro detalhe completo por matéria.",
+    rankingTitulo: "Ranking",
+    rankingTexto:
+      "Compare-se com o resto da comunidade: veja o top 3 e, se você não estiver entre eles, sua própria posição aparece aqui embaixo mesmo assim.",
+    comunidadeTitulo: "Comunidade e Feedback",
+    comunidadeTexto:
+      "Encontrou um erro, tem uma dúvida ou sugestão? Use este botão pra escrever pra equipe — e se você tem um resumo ou material que ajudou, compartilhe aqui também.",
+    fechamentoTitulo: "Pronto!",
+    fechamentoTexto: "É isso por agora. Você pode rever este tutorial quando quiser pelo botão \"Rever tutorial\" no canto inferior direito. Bons estudos!",
+  },
   perfil: {
     fotoDePerfil: "Foto de Perfil",
     alterarFoto: "Alterar Foto",
@@ -2251,6 +2308,63 @@ const es: typeof pt = {
     corpo:
       "¿Tenés un resumen, esquema o video que te ayudó a entender ese tema difícil? ¡Compartilo con tus compañeros! Las sugerencias para organizar el estudio, tus dudas y críticas constructivas también tienen lugar en la Página de Feedback — cada aporte tuyo ayuda a mejorar MedClass para todos los estudiantes de la UNR.",
     cta: "Contribuir ahora",
+  },
+  tutorialDashboard: {
+    contadorPasso: "Paso {atual} de {total}",
+    pular: "Saltar tutorial",
+    proximo: "Siguiente",
+    entendido: "¡Entendido!",
+    reverBotao: "Repasar tutorial",
+    bemVindoTitulo: "¡Bienvenido/a a MedClass!",
+    bemVindoTexto:
+      "Antes de arrancar, te mostramos rápido cada herramienta de la plataforma para que sepas exactamente dónde encontrar cada cosa. Son varios pasos, pero vale la pena — después podés repasar esto cuando quieras.",
+    tipTitulo: "Consejo del día",
+    tipTexto: "Cada día aparece un consejo de estudio distinto acá arriba — es solo inspiración rápida, no hace falta hacer nada con esto.",
+    streakTitulo: "Tu racha diaria",
+    streakTexto:
+      "El fuego cuenta cuántos días seguidos estudiaste. Cada simulacro, desafío clínico o caso de hospital que termines suma al contador — no dejes que se apague.",
+    progressoTitulo: "Tu Progreso",
+    progressoTexto:
+      "Estas 4 tarjetas resumen tu desempeño general: % de aciertos, preguntas respondidas, tiempo total de estudio y cuántos simulacros hiciste en los últimos 7 días. Se actualizan solas con cada práctica.",
+    gridTitulo: "Qué Hacer Ahora",
+    gridTexto: "Acá están los accesos directos a las herramientas principales de estudio. Vamos a repasar cada uno.",
+    simuladoLivreTitulo: "Simulacro Libre",
+    simuladoLivreTexto:
+      "Practicá sin presión: elegís materia, año y cantidad de preguntas, navegás libre entre ellas (podés volver atrás), y ves si acertaste o no al toque. Ideal para repasar contenido.",
+    simuladoTimerTitulo: "Simulacro Timer Test",
+    simuladoTimerTexto:
+      "Mismo banco de preguntas, pero en modo examen real: tiempo límite por pregunta (30 a 180 segundos), no podés volver atrás ni saltear — si se acaba el tiempo, cuenta como error. Así entrenás para el ritmo de la prueba de verdad.",
+    desafiosTitulo: "Desafíos Clínicos",
+    desafiosTexto:
+      "Casos clínicos completos, paso a paso: anamnesis, examen físico, exámenes complementarios, diagnóstico y conducta, con corrección inmediata en cada etapa. El primer caso de cada bloque es gratis; el resto se libera con un plan pago.",
+    hospitalTitulo: "Hospital de Simulación",
+    hospitalTexto:
+      "Simulación interactiva de guardia real: tomás decisiones clínicas en tiempo real y el sistema registra presión arterial, errores, tiempo hasta la intervención y si el paciente sobrevive. Disponible solo para planes pagos.",
+    cronogramaTitulo: "Cronograma",
+    cronogramaTexto:
+      "Armá tu rutina personal de estudio: elegís materia, horario y en qué días de la semana repetirla. Desde acá también podés arrancar una sesión de práctica con un toque.",
+    atividadesUnrTitulo: "Actividades en la UNR",
+    atividadesUnrTexto:
+      "La agenda real del día en la Facultad de Ciencias Médicas (clases, prácticos, seminarios), tomada directo de Bedelía — no es contenido de examen, es tu cronograma de cursada de verdad.",
+    calendarioTitulo: "Calendario",
+    calendarioTexto:
+      "Fechas oficiales importantes: inscripciones, exámenes, eventos de la comunidad. Distinto del Cronograma (que es tu rutina personal) — acá podés activar recordatorios o agregar tus propios eventos.",
+    mesaOralTitulo: "Mesa Oral",
+    mesaOralTexto: "Simulación de examen oral con devolución inmediata — todavía en desarrollo, pronto vas a poder practicar acá también.",
+    materiaisTitulo: "Materiales",
+    materiaisTexto:
+      "En el menú lateral encontrás \"Materiales\": videoclases (abiertas para todos), resúmenes y flashcards organizados por materia. En el plan gratuito tenés acceso limitado — los planes pagos desbloquean todo.",
+    desempenhoTitulo: "Tu Desempeño",
+    desempenhoTexto:
+      "Acá ves tu porcentaje de aciertos, el total de preguntas respondidas con la tendencia reciente, y tus puntos acumulados. Tocá \"Ver estadísticas\" para el detalle completo por materia.",
+    rankingTitulo: "Ranking",
+    rankingTexto:
+      "Comparate con el resto de la comunidad: mirá el top 3 y, si no estás entre ellos, tu propia posición aparece igual acá abajo.",
+    comunidadeTitulo: "Comunidad y Feedback",
+    comunidadeTexto:
+      "¿Encontraste un error, tenés una duda o una sugerencia? Usá este botón para escribirle al equipo — y si tenés un resumen o material que ayudó, compartilo acá también.",
+    fechamentoTitulo: "¡Listo!",
+    fechamentoTexto: "Eso es todo por ahora. Podés repasar este tutorial cuando quieras con el botón \"Repasar tutorial\" en la esquina inferior derecha. ¡Mucho éxito con el estudio!",
   },
   perfil: {
     fotoDePerfil: "Foto de Perfil",

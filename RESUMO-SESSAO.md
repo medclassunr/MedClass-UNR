@@ -1,40 +1,108 @@
-# MedClass UNR — Resumo da sessão (30/09/2026)
+# MedClass UNR — Resumo de sessões
 
-Documento de continuidade. Commit: `7e400a9` — "feat: grade de acesso rápido no dashboard (estilo ícones de app)".
+Documento de continuidade.
 
 ---
 
+# Sessão 08/10/2026 — Tutorial guiado do dashboard
+
+## O que foi pedido
+Réplica do tutorial guiado de primeiro acesso já construído no projeto
+**CRM na Mão** (ver `CRM na Mao/RESUMO-SESSAO.md`), adaptado às cores/tema
+desta plataforma (tokens CSS `var(--primary)` etc., se adapta sozinho
+entre claro/escuro), reusando o mesmo avatar (médico 3D, 6 poses
+estáticas), em **espanhol** (idioma padrão da plataforma — `pt` e `es`
+sempre lado a lado em `lib/i18n.tsx`, como o resto do projeto), explicando
+**cada funcionalidade em detalhe**, mais um ícone "?" em cada página pra
+reabrir só a explicação daquela funcionalidade específica, mesmo depois
+do tour completo já ter passado.
+
 ## O que foi feito
 
-### Grade de acesso rápido no dashboard (`/dashboard`)
+### Arquitetura (React/Next, diferente do CRM na Mão que é JS puro)
 
-Substituiu os dois cards grandes "Praticar"/"Criar Simulado" (componente `ActionCards`, removido — `components/action-cards.tsx` deletado) por uma **grade única de 8 tiles quadrados**, todos do mesmo tamanho, estilo ícone de app (squircle grande com gradiente glossy + sombra, texto grande embaixo). Componente novo: `components/quick-access-grid.tsx`, usado em `app/dashboard/page.tsx` sob o heading já existente "O Que Fazer Agora" / "Qué Hacer Ahora".
+- **`components/onboarding-tutorial.tsx`** (novo) — `TutorialProvider` +
+  hook `useTutorial()`. Guarda o estado (passo atual, lista de passos
+  ativa, posição do spotlight) e renderiza o overlay/cartão + o botão
+  flutuante "Repasar tutorial" (canto inferior direito). Expõe duas
+  funções pro resto do app: `abrirTutorialCompleto()` (os 18 passos) e
+  `abrirAjudaPagina(passos)` (só 1-2 passos, sem spotlight).
+- **`components/page-help-button.tsx`** (novo) — ícone "?" que entra no
+  cabeçalho (`dashboard-header.tsx`), mapeia a rota atual
+  (`usePathname()`) pra um passo específico do tutorial (array
+  `ROTA_PARA_PASSOS`) e chama `abrirAjudaPagina()`. Em `/dashboard`
+  (sem funcionalidade própria pra explicar) reabre o tour completo, igual
+  o botão flutuante.
+- **`components/dashboard-layout.tsx`** — agora envolve tudo com
+  `<TutorialProvider>` (era só a estrutura sidebar+header+main antes).
+  Como toda página chama `<DashboardLayout>` no próprio `page.tsx`, o
+  provider (e portanto o botão flutuante + ícone "?") fica disponível em
+  **todas** as páginas do dashboard, não só na home.
+- **`lib/tutorial-status.ts`** (novo) — `getTutorialVisto()` /
+  `marcarTutorialVisto()`, lendo/gravando
+  `profiles.tutorial_dashboard_visto` no Supabase.
+- **`supabase/migrations/20261008000000_tutorial_dashboard_visto.sql`**
+  (novo) — `alter table profiles add column ... default false`.
+  **PENDENTE: precisa ser rodada manualmente no SQL Editor do Supabase**
+  (não tem CLI linkado a este projeto, mesmo padrão dos outros arquivos
+  em `supabase/migrations/`) — sem isso, `getTutorialVisto()` sempre
+  retorna `false` (coluna não existe ainda) e o tour completo vai tentar
+  abrir sozinho toda vez que a página carregar.
+- **`lib/i18n.tsx`** — novo namespace `tutorialDashboard` (18 pares
+  título/texto + textos dos botões), adicionado **tanto em `pt` quanto em
+  `es`** (`es` é o idioma padrão da plataforma — `const [lang, setLangState] = useState<Lang>("es")`
+  — por isso o pedido "tutorial em espanhol" já fica atendido por padrão,
+  sem quebrar o sistema bilíngue que o resto do app já tem).
+- **`public/tutorial/avatar-medico-tutorial-1..6.webp`** (novos) — cópia
+  exata dos mesmos 6 arquivos já usados no projeto CRM na Mão
+  (`site/assets/avatar-medico-tutorial-1..6.webp`), ~9-10KB cada.
 
-**Os 8 tiles, nessa ordem:**
+### Elementos marcados com `data-tutorial="..."` (pra servir de alvo do spotlight)
 
-| Tile | Rota | Cor (gradiente) |
-|---|---|---|
-| Simulacro Livre / Simulacro Libre | `/dashboard/simulados` | verde-lima |
-| Simulacro Timer Test | `/dashboard/simulados?novo=true` | rosa/fúcsia |
-| Desafíos Clínicos | `/dashboard/desafios-clinicos` | vermelho |
-| Hospital Simulación | `/dashboard/hospital-simulacao` | verde-azulado |
-| Cronograma | `/dashboard/cronograma` | laranja |
-| Actividades en la UNR | `/dashboard/actividades-unr` | azul |
-| Calendario | `/dashboard/calendario` | roxo |
-| Mesa Oral | **sem link** (feature não implementada) | cinza, selo "Em breve"/"Próximamente" |
+Adicionado em `components/daily-tip-header.tsx`, `daily-streak.tsx`,
+`home-stats.tsx`, `quick-access-grid.tsx` (um `data-tutorial` por tile,
+incluindo o Mesa Oral), `desempenho-widget.tsx`, `ranking-widget.tsx` e
+`comunidade-banner.tsx`. Passos sem alvo correspondente (boas-vindas,
+Materiais, encerramento, e todo o ajuda-por-página) mostram só o cartão
+centralizado, sem destaque — `onboarding-tutorial.tsx` já trata isso
+sozinho (`rect === null`).
 
-Labels novos adicionados em `lib/i18n.tsx` (`dashboardNav.simulacroLivre`, `dashboardNav.simulacroTimer`), traduzidos pt/es.
+### Os 18 passos do tour completo (nessa ordem)
 
-### Decisões de design tomadas durante a sessão (histórico do processo, caso precise ajustar de novo)
+Boas-vindas → Dica do dia → Sequência diária (streak) → Seu Progresso →
+intro da grade "O Que Fazer Agora" → **Simulacro Libre** → **Simulacro
+Timer Test** (explicitamente diferenciados -- mesmo banco de perguntas,
+um é livre/sem pressão e o outro é cronometrado/modo prova real, sem
+poder voltar) → Desafíos Clínicos → Hospital de Simulación (menciona que
+é só pra planos pagos) → Cronograma → Actividades en la UNR (deixa claro
+que é a agenda real da Facultad, não conteúdo de prova) → Calendario
+(diferencia de Cronograma) → Mesa Oral (ainda "em breve") → Materiais
+(sem spotlight -- fica só no menu lateral, não tem card na home) →
+Desempenho → Ranking → Comunidade/Feedback → encerramento.
 
-1. Primeira versão: ícone pequeno flutuando num card neutro — **rejeitada** ("ícone dentro de um quadrado maior").
-2. Segunda versão: quadrado inteiro colorido (gradiente preenchendo o tile todo, ícone + texto brancos por cima) — **aprovada**, é o formato atual. Baseada numa imagem de referência que o usuário enviou (grade de 6 quadrados coloridos tipo app, ícone + label).
-3. Texto do label aumentado de `text-sm` pra `text-xl` (pedido explícito: "letras bem maiores").
-4. Cor do 2º tile (Simulacro Timer Test) trocada pra ficar diferente do 1º (antes os dois eram verdes iguais, igual o `ActionCards` original).
-5. Mesa Oral adicionado por último pra preencher o espaço vazio da grade (ela tem 4 colunas em telas grandes — `lg:grid-cols-4` — e sobravam 7 itens, ficando um buraco). Como a feature "Mesa Oral" ainda não existe no produto, o tile não é um link (`<div>` simples, não `<Link>`), só mantém a mesma animação de hover dos outros, com selo "Em breve".
+Conteúdo de cada passo foi escrito com base num levantamento detalhado
+de como cada funcionalidade funciona de verdade (lido o código de
+`simulados-content.tsx`, `desafios-clinicos-content.tsx`,
+`hospital-simulacao-grid.tsx`, etc.) -- não é texto genérico.
 
-### Pendências / próximos passos possíveis
+### Validação feita
 
-- **Push não confirmado por mim**: minha credencial de terminal (`leoozimalves`) não tem permissão de escrita nesse repositório (mesmo problema já visto no projeto CRM na Mão — `git push` deu 403). Pedi pra você fazer o push manual pelo GitHub Desktop. Confira se o commit `7e400a9` já está no GitHub antes de continuar a partir daqui.
-- Se quiser reordenar os tiles, trocar ícone/cor de algum, ou adicionar mais um (ex: Resúmenes, Videoaulas — que apareciam na imagem de referência original mas não entraram nessa leva), é só editar o array `tiles` em `components/quick-access-grid.tsx`.
-- Mapeamento completo de TODAS as funcionalidades da plataforma MedClass UNR (Banco de Questões, Flashcards, Simulados, Hospital de Simulação, Painel Admin etc.) foi levantado e enviado direto no chat nesta sessão — não foi salvo em arquivo (usuário pediu explicitamente só no chat). Se precisar dessa lista de novo, é só pedir que eu re-analiso o projeto.
+- `npx tsc --noEmit` -- **sem erros**.
+- `npx next build` -- **build de produção completo passou**, todas as 63
+  rotas geradas com sucesso, incluindo `/dashboard` e todas as páginas
+  que o tutorial referencia.
+- **Não testado visualmente num navegador real** (sem ferramenta de
+  automação de browser disponível neste ambiente) -- o build/typecheck
+  passando dá bastante confiança estrutural, mas vale abrir de verdade e
+  clicar em cada passo antes de divulgar pros alunos.
+
+### Pendências
+
+1. **Rodar a migration SQL no Supabase** (seção acima) -- sem isso o
+   tutorial completo tenta abrir sozinho toda vez.
+2. Testar visualmente: tour completo (inclusive se o spotlight acompanha
+   certinho cada elemento), o botão "?" em pelo menos 2-3 páginas
+   diferentes, e o botão flutuante "Repasar tutorial".
+3. **Push não confirmado por mim** -- mesmo problema de permissão já
+   documentado (`leoozimalves` sem acesso de escrita no repo). Dar push
+   manual pelo GitHub Desktop depois de conferir/commitar.

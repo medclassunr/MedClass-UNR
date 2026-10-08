@@ -24,7 +24,7 @@ export function DailyTipHeader() {
   if (!tip) return null
 
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div data-tutorial="daily-tip" className="flex items-center gap-2 text-sm">
       <Lightbulb className="h-4 w-4 shrink-0 text-primary" />
       <p className="leading-relaxed text-muted-foreground">
         <span className="font-semibold text-primary">{t.dailyTip.label}:</span> {tip}

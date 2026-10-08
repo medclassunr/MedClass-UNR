@@ -13,7 +13,7 @@ export function ComunidadeBanner({ showCta = true }: ComunidadeBannerProps) {
   const { t } = useLanguage()
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6">
+    <div data-tutorial="comunidade-banner" className="relative overflow-hidden rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-6">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
           <IconChip icon={Users} className="bg-gradient-to-br from-lime-400 to-green-600 shadow-green-900/30" />

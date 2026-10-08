@@ -17,6 +17,7 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.simulacroLivre,
       gradient: "from-lime-400 to-green-600",
       shadow: "shadow-green-900/30",
+      tutorialId: "tile-simulacro-libre",
     },
     {
       href: "/dashboard/simulados?novo=true",
@@ -24,6 +25,7 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.simulacroTimer,
       gradient: "from-fuchsia-400 to-pink-600",
       shadow: "shadow-pink-900/30",
+      tutorialId: "tile-simulacro-timer",
     },
     {
       href: "/dashboard/desafios-clinicos",
@@ -31,6 +33,7 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.desafiosClinicos,
       gradient: "from-rose-400 to-red-600",
       shadow: "shadow-red-900/30",
+      tutorialId: "tile-desafios-clinicos",
     },
     {
       href: "/dashboard/hospital-simulacao",
@@ -38,6 +41,7 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.hospitalSimulacao,
       gradient: "from-teal-400 to-emerald-600",
       shadow: "shadow-emerald-900/30",
+      tutorialId: "tile-hospital-simulacao",
     },
     {
       href: "/dashboard/cronograma",
@@ -45,6 +49,7 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.cronograma,
       gradient: "from-amber-400 to-orange-600",
       shadow: "shadow-orange-900/30",
+      tutorialId: "tile-cronograma",
     },
     {
       href: "/dashboard/actividades-unr",
@@ -52,6 +57,7 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.atividadesUnr,
       gradient: "from-sky-400 to-blue-600",
       shadow: "shadow-blue-900/30",
+      tutorialId: "tile-atividades-unr",
     },
     {
       href: "/dashboard/calendario",
@@ -59,13 +65,14 @@ export function QuickAccessGrid() {
       label: t.dashboardNav.calendario,
       gradient: "from-indigo-400 to-violet-600",
       shadow: "shadow-violet-900/30",
+      tutorialId: "tile-calendario",
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-      {tiles.map(({ href, icon: Icon, label, gradient, shadow }) => (
-        <Link key={href} href={href} className="group">
+    <div data-tutorial="quick-access-grid" className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {tiles.map(({ href, icon: Icon, label, gradient, shadow, tutorialId }) => (
+        <Link key={href} href={href} className="group" data-tutorial={tutorialId}>
           <div className={`${TILE_CLASS} bg-gradient-to-br ${gradient} ${shadow}`}>
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/25 via-white/0 to-black/10" />
             <Icon className="relative h-10 w-10 shrink-0 text-white drop-shadow-sm" strokeWidth={1.75} aria-hidden="true" />
@@ -76,7 +83,7 @@ export function QuickAccessGrid() {
 
       {/* Mesa Oral ainda não foi implementada -- mostra o tile (com a mesma
           animação de hover dos outros) mas sem link, já que não há pra onde ir. */}
-      <div className="group cursor-default">
+      <div className="group cursor-default" data-tutorial="tile-mesa-oral">
         <div className={`${TILE_CLASS} bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-900/30`}>
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/25 via-white/0 to-black/10" />
           <Mic className="relative h-10 w-10 shrink-0 text-white drop-shadow-sm" strokeWidth={1.75} aria-hidden="true" />

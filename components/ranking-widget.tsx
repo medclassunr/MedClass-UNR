@@ -56,7 +56,7 @@ export function RankingWidget() {
   const estouNoTop = currentUserId ? rows.some((r) => r.user_id === currentUserId) : false
 
   return (
-    <Card className="border border-border bg-card p-6">
+    <Card data-tutorial="ranking-widget" className="border border-border bg-card p-6">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="flex items-center gap-2.5 font-semibold text-foreground">
           <IconChip icon={Trophy} size="sm" className="bg-gradient-to-br from-amber-400 to-yellow-600 shadow-amber-900/30" />

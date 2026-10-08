@@ -39,7 +39,7 @@ export function DailyStreak() {
       : t.atividadeDiaria.fraseZerado
 
   return (
-    <div className="mx-auto max-w-xl rounded-2xl bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 p-[2px] animate-streak-glow">
+    <div data-tutorial="daily-streak" className="mx-auto max-w-xl rounded-2xl bg-gradient-to-r from-orange-600 via-red-500 to-orange-600 p-[2px] animate-streak-glow">
       <div className="rounded-2xl bg-card p-5">
         <div className="flex flex-col items-center text-center">
           <div className="flex items-center gap-2">
