@@ -94,18 +94,18 @@ export function DashboardAvatarAssistant() {
         onClick={aoClicarAvatar}
         aria-label={lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
         title={lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
-        className="fixed right-4 top-[72px] z-[120] h-14 w-14 overflow-hidden rounded-full border-2 border-primary/50 bg-card shadow-lg transition-transform hover:scale-105"
+        className="fixed right-4 top-[72px] z-[120] h-24 w-24 overflow-hidden rounded-full border-[3px] border-primary/50 bg-card shadow-xl transition-transform hover:scale-105"
       >
         <img src={AVATAR_ICONE} alt="" className="h-full w-full object-cover object-top" />
         {lembreteAtivo && (
-          <span className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full border-2 border-card bg-destructive" />
+          <span className="absolute right-1 top-1 h-4 w-4 rounded-full border-2 border-card bg-destructive" />
         )}
       </button>
 
       {mostrarBalao && (
-        <div className="fixed right-3 top-[132px] z-[120] w-[min(300px,calc(100vw-1.5rem))]">
+        <div className="fixed right-3 top-[180px] z-[120] w-[min(300px,calc(100vw-1.5rem))]">
           <div className="relative rounded-2xl border border-border bg-card p-4 shadow-2xl">
-            <span className="absolute -top-1.5 right-8 h-3 w-3 rotate-45 border-l border-t border-border bg-card" />
+            <span className="absolute -top-1.5 right-10 h-3 w-3 rotate-45 border-l border-t border-border bg-card" />
 
             {lembreteAtivo ? (
               <div>
