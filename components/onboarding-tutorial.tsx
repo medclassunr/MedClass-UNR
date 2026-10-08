@@ -237,7 +237,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             <img
               src={avatarSrc}
               alt=""
-              className={`pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain drop-shadow-2xl sm:left-auto sm:top-auto sm:h-[370px] sm:translate-x-0 sm:bottom-[-14px] ${
+              className={`pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain sm:left-auto sm:top-auto sm:h-[370px] sm:translate-x-0 sm:bottom-[-14px] ${
                 ladoInvertido ? "sm:right-[-10px]" : "sm:left-[-10px]"
               }`}
             />
