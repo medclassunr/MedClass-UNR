@@ -1,10 +1,12 @@
 "use client"
 
-// Tutorial guiado do dashboard -- mesmo conceito e os mesmos avatares
-// (public/tutorial/avatar-medico-tutorial-1..6.webp) já usados no projeto
-// CRM na Mão, portados pra React/Next e com as cores desta plataforma
-// (tokens CSS var(--primary)/var(--card)/var(--border) etc., se adapta
-// sozinho entre tema claro/escuro).
+// Tutorial guiado do dashboard -- mesmo conceito do projeto CRM na Mão
+// (ver RESUMO-SESSAO.md), portado pra React/Next e com as cores desta
+// plataforma (tokens CSS var(--primary)/var(--card)/var(--border) etc.,
+// se adapta sozinho entre tema claro/escuro). Avatar próprio desta
+// plataforma (médica, public/tutorial/avatar-medica-tutorial-1..6.webp)
+// pra não ficar visualmente igual ao avatar do CRM na Mão -- uma pose
+// aleatória (nunca repetida 2x seguidas) é sorteada a cada passo.
 //
 // Dois jeitos de abrir:
 // 1. Tour completo (18 passos): sozinho na primeira vez que o aluno abre
@@ -54,6 +56,7 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "atividadesUnrTitulo", textoKey: "atividadesUnrTexto", selector: '[data-tutorial="tile-atividades-unr"]' },
   { tituloKey: "calendarioTitulo", textoKey: "calendarioTexto", selector: '[data-tutorial="tile-calendario"]' },
   { tituloKey: "mesaOralTitulo", textoKey: "mesaOralTexto", selector: '[data-tutorial="tile-mesa-oral"]' },
+  { tituloKey: "menuLateralTitulo", textoKey: "menuLateralTexto", selector: '[data-tutorial="sidebar-menu"]' },
   { tituloKey: "materiaisTitulo", textoKey: "materiaisTexto", selector: null },
   { tituloKey: "desempenhoTitulo", textoKey: "desempenhoTexto", selector: '[data-tutorial="desempenho-widget"]' },
   { tituloKey: "rankingTitulo", textoKey: "rankingTexto", selector: '[data-tutorial="ranking-widget"]' },
@@ -61,14 +64,21 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "fechamentoTitulo", textoKey: "fechamentoTexto", selector: null },
 ]
 
-const AVATAR_FRAMES = [
-  "/tutorial/avatar-medico-tutorial-1.webp",
-  "/tutorial/avatar-medico-tutorial-2.webp",
-  "/tutorial/avatar-medico-tutorial-3.webp",
-  "/tutorial/avatar-medico-tutorial-4.webp",
-  "/tutorial/avatar-medico-tutorial-5.webp",
-  "/tutorial/avatar-medico-tutorial-6.webp",
+export const AVATAR_FRAMES = [
+  "/tutorial/avatar-medica-tutorial-1.webp",
+  "/tutorial/avatar-medica-tutorial-2.webp",
+  "/tutorial/avatar-medica-tutorial-3.webp",
+  "/tutorial/avatar-medica-tutorial-4.webp",
+  "/tutorial/avatar-medica-tutorial-5.webp",
+  "/tutorial/avatar-medica-tutorial-6.webp",
 ]
+
+function sortearPose(anterior: number): number {
+  if (AVATAR_FRAMES.length <= 1) return 0
+  let proxima = Math.floor(Math.random() * AVATAR_FRAMES.length)
+  while (proxima === anterior) proxima = Math.floor(Math.random() * AVATAR_FRAMES.length)
+  return proxima
+}
 
 interface SpotRect {
   top: number
@@ -96,7 +106,15 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [aberto, setAberto] = useState(false)
   const [passoAtual, setPassoAtual] = useState(0)
   const [rect, setRect] = useState<SpotRect | null>(null)
+  const [avatarIdx, setAvatarIdx] = useState(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Sorteia uma pose nova (nunca igual à anterior) toda vez que um passo
+  // novo é mostrado -- pedido explícito: aleatório, não sequencial.
+  useEffect(() => {
+    if (!aberto) return
+    setAvatarIdx((anterior) => sortearPose(anterior))
+  }, [aberto, passoAtual])
 
   // Tour completo sozinho só na 1ª vez (profiles.tutorial_dashboard_visto).
   useEffect(() => {
@@ -185,7 +203,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const passo = passos[passoAtual]
   const ultimo = passoAtual === passos.length - 1
   const ladoInvertido = passoAtual % 2 === 1
-  const avatarSrc = AVATAR_FRAMES[passoAtual % AVATAR_FRAMES.length]
+  const avatarSrc = AVATAR_FRAMES[avatarIdx]
   const contador = t.tutorialDashboard.contadorPasso
     .replace("{atual}", String(passoAtual + 1))
     .replace("{total}", String(passos.length))
@@ -210,14 +228,24 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             />
           )}
 
+          {/* Card relativo -- a médica (img abaixo) é maior que o próprio
+              card e "estoura" pra fora dele (bleeding), em cima no mobile
+              (sobe acima do topo) e pro lado no desktop (alternando
+              esquerda/direita a cada passo), enquanto uma parte do corpo
+              dela continua sobreposta à área do card onde fica o texto. */}
           <div className="fixed bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl border border-border bg-card p-6 shadow-2xl">
-            <div className={`flex items-center gap-5 ${ladoInvertido ? "flex-row-reverse" : ""}`}>
-              <img
-                src={avatarSrc}
-                alt=""
-                className="h-auto w-[130px] shrink-0 object-contain drop-shadow-lg sm:w-[160px]"
-              />
-              <div className="min-w-0 flex-1">
+            <img
+              src={avatarSrc}
+              alt=""
+              className={`pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain drop-shadow-2xl sm:left-auto sm:top-auto sm:h-[420px] sm:translate-x-0 sm:bottom-[-14px] ${
+                ladoInvertido ? "sm:right-[-26px]" : "sm:left-[-26px]"
+              }`}
+            />
+
+            <div
+              className={`relative pt-[155px] sm:pt-0 ${ladoInvertido ? "sm:pr-[175px]" : "sm:pl-[175px]"}`}
+            >
+              <div>
                 {passos.length > 1 && (
                   <p className="text-[11px] font-bold uppercase tracking-wide text-primary">{contador}</p>
                 )}
@@ -226,23 +254,23 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                   {t.tutorialDashboard[passo.textoKey]}
                 </p>
               </div>
-            </div>
 
-            <div className="mt-5 flex items-center justify-between gap-3">
-              {passos.length > 1 ? (
-                <>
-                  <Button type="button" variant="outline" onClick={encerrar}>
-                    {t.tutorialDashboard.pular}
+              <div className="mt-5 flex items-center justify-between gap-3">
+                {passos.length > 1 ? (
+                  <>
+                    <Button type="button" variant="outline" onClick={encerrar}>
+                      {t.tutorialDashboard.pular}
+                    </Button>
+                    <Button type="button" variant="gradient" onClick={avancar}>
+                      {ultimo ? t.tutorialDashboard.entendido : t.tutorialDashboard.proximo}
+                    </Button>
+                  </>
+                ) : (
+                  <Button type="button" variant="gradient" onClick={encerrar} className="ml-auto">
+                    {t.tutorialDashboard.entendido}
                   </Button>
-                  <Button type="button" variant="gradient" onClick={avancar}>
-                    {ultimo ? t.tutorialDashboard.entendido : t.tutorialDashboard.proximo}
-                  </Button>
-                </>
-              ) : (
-                <Button type="button" variant="gradient" onClick={encerrar} className="ml-auto">
-                  {t.tutorialDashboard.entendido}
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

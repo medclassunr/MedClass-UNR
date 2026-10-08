@@ -12,6 +12,7 @@ export function CollapsibleSidebar() {
   return (
     <aside className={`hidden shrink-0 transition-[width] duration-200 ease-in-out lg:block ${pinned ? "w-64" : "w-16"}`}>
       <div
+        data-tutorial="sidebar-menu"
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         className={`fixed inset-y-0 left-0 z-40 border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-in-out ${

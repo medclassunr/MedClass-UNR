@@ -1117,6 +1117,8 @@ const pt = {
     proximo: "Próximo",
     entendido: "Entendi!",
     reverBotao: "Rever tutorial",
+    faqTitulo: "Em que posso ajudar?",
+    clicarParaFechar: "Toque no avatar para fechar",
     bemVindoTitulo: "Bem-vindo(a) à MedClass!",
     bemVindoTexto:
       "Antes de começar, vamos te mostrar rapidinho cada ferramenta da plataforma pra você saber exatamente onde encontrar cada coisa. São vários passos, mas vale a pena — depois você pode rever isso quando quiser.",
@@ -1153,6 +1155,9 @@ const pt = {
       "Datas oficiais importantes: inscrições, provas, eventos da comunidade. Diferente do Cronograma (que é sua rotina pessoal) — aqui você pode ativar lembretes ou adicionar seus próprios eventos.",
     mesaOralTitulo: "Mesa Oral",
     mesaOralTexto: "Simulação de prova oral com devolutiva imediata — ainda em desenvolvimento, em breve você vai poder praticar aqui também.",
+    menuLateralTitulo: "Menu lateral",
+    menuLateralTexto:
+      "Tudo que acabamos de ver (Simulados, Desafios Clínicos, Hospital Simulação, Cronograma, Actividades en la UNR, Calendario) também está aqui, no menu à esquerda — útil pra navegar direto sem precisar voltar sempre pra home.",
     materiaisTitulo: "Materiais",
     materiaisTexto:
       "No menu lateral você encontra \"Materiais\": videoaulas (abertas pra todos), resumos e flashcards organizados por matéria. No plano gratuito o acesso é limitado — os planos pagos liberam tudo.",
@@ -2315,6 +2320,8 @@ const es: typeof pt = {
     proximo: "Siguiente",
     entendido: "¡Entendido!",
     reverBotao: "Repasar tutorial",
+    faqTitulo: "¿En qué te ayudo?",
+    clicarParaFechar: "Tocá el avatar para cerrar",
     bemVindoTitulo: "¡Bienvenido/a a MedClass!",
     bemVindoTexto:
       "Antes de arrancar, te mostramos rápido cada herramienta de la plataforma para que sepas exactamente dónde encontrar cada cosa. Son varios pasos, pero vale la pena — después podés repasar esto cuando quieras.",
@@ -2351,6 +2358,9 @@ const es: typeof pt = {
       "Fechas oficiales importantes: inscripciones, exámenes, eventos de la comunidad. Distinto del Cronograma (que es tu rutina personal) — acá podés activar recordatorios o agregar tus propios eventos.",
     mesaOralTitulo: "Mesa Oral",
     mesaOralTexto: "Simulación de examen oral con devolución inmediata — todavía en desarrollo, pronto vas a poder practicar acá también.",
+    menuLateralTitulo: "Menú lateral",
+    menuLateralTexto:
+      "Todo lo que acabamos de ver (Simulacros, Desafíos Clínicos, Hospital de Simulación, Cronograma, Actividades en la UNR, Calendario) también lo encontrás acá, en el menú de la izquierda — útil para navegar directo sin volver siempre a la home.",
     materiaisTitulo: "Materiales",
     materiaisTexto:
       "En el menú lateral encontrás \"Materiales\": videoclases (abiertas para todos), resúmenes y flashcards organizados por materia. En el plan gratuito tenés acceso limitado — los planes pagos desbloquean todo.",
