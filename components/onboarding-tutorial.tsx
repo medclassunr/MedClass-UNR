@@ -243,7 +243,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
             />
 
             <div
-              className={`relative pt-[70px] sm:pt-0 ${ladoInvertido ? "sm:pr-[235px]" : "sm:pl-[235px]"}`}
+              className={`relative pt-[40px] sm:pt-0 ${ladoInvertido ? "sm:pr-[235px]" : "sm:pl-[235px]"}`}
             >
               <div>
                 {passos.length > 1 && (

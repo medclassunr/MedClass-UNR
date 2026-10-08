@@ -1119,6 +1119,8 @@ const pt = {
     reverBotao: "Rever tutorial",
     faqTitulo: "Em que posso ajudar?",
     clicarParaFechar: "Toque no avatar para fechar",
+    esconderAvatar: "Esconder avatar",
+    mostrarAvatar: "Mostrar avatar",
     bemVindoTitulo: "Bem-vindo(a) à MedClass!",
     bemVindoTexto:
       "Antes de começar, vamos te mostrar rapidinho cada ferramenta da plataforma pra você saber exatamente onde encontrar cada coisa. São vários passos, mas vale a pena — depois você pode rever isso quando quiser.",
@@ -2322,6 +2324,8 @@ const es: typeof pt = {
     reverBotao: "Repasar tutorial",
     faqTitulo: "¿En qué te ayudo?",
     clicarParaFechar: "Tocá el avatar para cerrar",
+    esconderAvatar: "Ocultar avatar",
+    mostrarAvatar: "Mostrar avatar",
     bemVindoTitulo: "¡Bienvenido/a a MedClass!",
     bemVindoTexto:
       "Antes de arrancar, te mostramos rápido cada herramienta de la plataforma para que sepas exactamente dónde encontrar cada cosa. Son varios pasos, pero vale la pena — después podés repasar esto cuando quieras.",

@@ -17,6 +17,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { format } from "date-fns"
 import { ptBR, es } from "date-fns/locale"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { buscarLembretesAtivos } from "@/lib/calendario-lembretes"
 import type { CalendarioLembreteAtivo } from "@/lib/calendario-types"
@@ -54,6 +55,9 @@ export function DashboardAvatarAssistant() {
   const [lembretes, setLembretes] = useState<CalendarioLembreteAtivo[]>([])
   const [dispensados, setDispensados] = useState<Set<string>>(new Set())
   const [faqAberto, setFaqAberto] = useState(false)
+  // Permite esconder o avatar (ex.: se ele atrapalhar algo na tela no
+  // mobile) -- a setinha continua visível, fixa na borda, pra reabrir.
+  const [escondido, setEscondido] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -85,7 +89,24 @@ export function DashboardAvatarAssistant() {
     abrirAjudaPagina(passos)
   }
 
-  const mostrarBalao = !!lembreteAtivo || faqAberto
+  const mostrarBalao = !escondido && (!!lembreteAtivo || faqAberto)
+
+  if (escondido) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEscondido(false)}
+        aria-label={t.tutorialDashboard.mostrarAvatar}
+        title={t.tutorialDashboard.mostrarAvatar}
+        className="fixed right-0 top-[88px] z-[120] flex h-11 w-7 items-center justify-center rounded-l-full border border-r-0 border-primary/50 bg-card shadow-lg transition-transform hover:-translate-x-0.5"
+      >
+        <ChevronLeft className="h-4 w-4 text-primary" />
+        {lembreteAtivo && (
+          <span className="absolute left-0.5 top-0.5 h-2 w-2 rounded-full bg-destructive" />
+        )}
+      </button>
+    )
+  }
 
   return (
     <>
@@ -100,6 +121,16 @@ export function DashboardAvatarAssistant() {
         {lembreteAtivo && (
           <span className="absolute right-1 top-1 h-4 w-4 rounded-full border-2 border-card bg-destructive" />
         )}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setEscondido(true)}
+        aria-label={t.tutorialDashboard.esconderAvatar}
+        title={t.tutorialDashboard.esconderAvatar}
+        className="fixed right-[94px] top-[104px] z-[120] flex h-9 w-6 items-center justify-center rounded-l-full border border-r-0 border-border bg-card/90 text-muted-foreground shadow-md transition-colors hover:text-primary"
+      >
+        <ChevronRight className="h-4 w-4" />
       </button>
 
       {mostrarBalao && (
