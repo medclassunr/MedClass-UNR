@@ -4,7 +4,7 @@
 // (ver RESUMO-SESSAO.md), portado pra React/Next e com as cores desta
 // plataforma (tokens CSS var(--primary)/var(--card)/var(--border) etc.,
 // se adapta sozinho entre tema claro/escuro). Avatar próprio desta
-// plataforma (médica, public/tutorial/avatar-medica-tutorial-1..6.webp)
+// plataforma (médica, public/tutorial/avatar-medica-tutorial-1..6.png)
 // pra não ficar visualmente igual ao avatar do CRM na Mão -- uma pose
 // aleatória (nunca repetida 2x seguidas) é sorteada a cada passo.
 //
@@ -72,13 +72,18 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "fechamentoTitulo", textoKey: "fechamentoTexto", selector: null },
 ]
 
+// PNG, não WebP -- o WebP com canal alpha tem bugs de renderização
+// documentados no Safari/iOS (transparência intermitente, varia por
+// aparelho/imagem), confirmados em testes reais no celular mesmo com os
+// arquivos .webp já corretos a nível de bytes. PNG tem suporte a alpha
+// sólido e universal em todos os navegadores.
 export const AVATAR_FRAMES = [
-  "/tutorial/avatar-medica-tutorial-1.webp",
-  "/tutorial/avatar-medica-tutorial-2.webp",
-  "/tutorial/avatar-medica-tutorial-3.webp",
-  "/tutorial/avatar-medica-tutorial-4.webp",
-  "/tutorial/avatar-medica-tutorial-5.webp",
-  "/tutorial/avatar-medica-tutorial-6.webp",
+  "/tutorial/avatar-medica-tutorial-1.png",
+  "/tutorial/avatar-medica-tutorial-2.png",
+  "/tutorial/avatar-medica-tutorial-3.png",
+  "/tutorial/avatar-medica-tutorial-4.png",
+  "/tutorial/avatar-medica-tutorial-5.png",
+  "/tutorial/avatar-medica-tutorial-6.png",
 ]
 
 function sortearPose(anterior: number): number {
@@ -225,19 +230,43 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       {children}
 
       {aberto && passo && (
-        <div className="fixed inset-0 z-[200]" style={{ background: rect ? "transparent" : "rgba(0,0,0,0.75)" }}>
-          {rect && (
-            <div
-              className="pointer-events-none fixed rounded-2xl transition-all duration-300 ease-in-out"
-              style={{
-                top: Math.max(0, rect.top - 8),
-                left: Math.max(0, rect.left - 8),
-                width: rect.width + 16,
-                height: rect.height + 16,
-                boxShadow:
-                  "0 0 0 9999px rgba(0,0,0,0.75), 0 0 0 2px var(--primary), 0 0 24px color-mix(in srgb, var(--primary) 45%, transparent)",
-              }}
-            />
+        <div className="fixed inset-0 z-[200]">
+          {/* Máscara escura em 4 blocos (topo/baixo/esquerda/direita) ao
+              redor do recorte, em vez de um único box-shadow com espalhamento
+              gigante (9999px) -- essa técnica é conhecida por causar
+              artefatos de composição (GPU) em alguns Safari/iOS, dependendo
+              do tamanho do recorte. Sem recorte, cobre a tela toda. */}
+          {rect ? (
+            <>
+              <div
+                className="pointer-events-none fixed inset-x-0 top-0 bg-black/75 transition-all duration-300 ease-in-out"
+                style={{ height: Math.max(0, rect.top - 8) }}
+              />
+              <div
+                className="pointer-events-none fixed inset-x-0 bottom-0 bg-black/75 transition-all duration-300 ease-in-out"
+                style={{ top: Math.max(0, rect.top - 8) + rect.height + 16 }}
+              />
+              <div
+                className="pointer-events-none fixed left-0 bg-black/75 transition-all duration-300 ease-in-out"
+                style={{ top: Math.max(0, rect.top - 8), height: rect.height + 16, width: Math.max(0, rect.left - 8) }}
+              />
+              <div
+                className="pointer-events-none fixed right-0 bg-black/75 transition-all duration-300 ease-in-out"
+                style={{ top: Math.max(0, rect.top - 8), height: rect.height + 16, left: Math.max(0, rect.left - 8) + rect.width + 16 }}
+              />
+              <div
+                className="pointer-events-none fixed rounded-2xl transition-all duration-300 ease-in-out"
+                style={{
+                  top: Math.max(0, rect.top - 8),
+                  left: Math.max(0, rect.left - 8),
+                  width: rect.width + 16,
+                  height: rect.height + 16,
+                  boxShadow: "0 0 0 2px var(--primary), 0 0 24px color-mix(in srgb, var(--primary) 45%, transparent)",
+                }}
+              />
+            </>
+          ) : (
+            <div className="pointer-events-none fixed inset-0 bg-black/75" />
           )}
 
           {/* Card relativo -- a médica (img abaixo) é maior que o próprio
