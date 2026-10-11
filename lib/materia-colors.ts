@@ -26,6 +26,17 @@ const FALLBACK: MateriaColorConfig = {
 
 // Mesma paleta de 5 cores usada antes por área médica — agora reaplicada por ano.
 const ANO_COLORS: Record<AnoKey, MateriaColorConfig> = {
+  ano0: {
+    hex: "#06b6d4",
+    dot: "bg-cyan-500",
+    text: "text-cyan-500",
+    border: "border-cyan-500",
+    borderSoft: "border-cyan-500/40",
+    hoverBorder: "hover:border-cyan-500",
+    hoverGlow: "hover:shadow-[0_0_18px_rgba(6,182,212,0.5)]",
+    bgSoft: "bg-cyan-500/10",
+    activeBg: "bg-cyan-500",
+  },
   ano1: {
     hex: "#10b981",
     dot: "bg-emerald-500",

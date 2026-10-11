@@ -1,10 +1,11 @@
 // Estrutura curricular da UNR (chaves canônicas — o que fica salvo no banco).
 // Rótulos de exibição por idioma vivem em lib/i18n.tsx (t.cronograma.anoLabel/materiaLabel/parcialLabel).
 
-export const ANO_KEYS = ["ano1", "ano2", "ano3", "ano4", "ano5"] as const
+export const ANO_KEYS = ["ano0", "ano1", "ano2", "ano3", "ano4", "ano5"] as const
 export type AnoKey = (typeof ANO_KEYS)[number]
 
 export const MATERIA_KEYS_BY_ANO: Record<AnoKey, string[]> = {
+  ano0: ["metodologia_investigacion", "informatica", "ingles"],
   ano1: ["crescimento_desenvolvimento", "nutricao"],
   ano2: ["sexualidade_genero_reproducao", "trabalho_tempo_livre", "ser_humano_meio"],
   ano3: ["injuria", "defesa"],

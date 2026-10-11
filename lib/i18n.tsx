@@ -174,6 +174,7 @@ const pt = {
     area: "Matéria",
     ano: "Ano",
     anoLabel: {
+      ano0: "Instrumentais",
       ano1: "1º Ano",
       ano2: "2º Ano",
       ano3: "3º Ano",
@@ -182,6 +183,9 @@ const pt = {
       cursos: "Cursos",
     } as Record<string, string>,
     materiaLabel: {
+      metodologia_investigacion: "Metodologia da Investigação",
+      informatica: "Informática",
+      ingles: "Inglês",
       crescimento_desenvolvimento: "Crescimento e Desenvolvimento",
       nutricao: "Nutrição",
       sexualidade_genero_reproducao: "Sexualidade, Gênero e Reprodução",
@@ -1384,6 +1388,7 @@ const es: typeof pt = {
     area: "Materia",
     ano: "Año",
     anoLabel: {
+      ano0: "Instrumentales",
       ano1: "1er Año",
       ano2: "2do Año",
       ano3: "3er Año",
@@ -1392,6 +1397,9 @@ const es: typeof pt = {
       cursos: "Cursos",
     } as Record<string, string>,
     materiaLabel: {
+      metodologia_investigacion: "Metodología de la Investigación",
+      informatica: "Informática",
+      ingles: "Inglés",
       crescimento_desenvolvimento: "Crecimiento y Desarrollo",
       nutricao: "Nutrición",
       sexualidade_genero_reproducao: "Sexualidad, Género y Reproducción",
