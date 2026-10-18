@@ -1149,9 +1149,18 @@ const pt = {
     simuladoTimerTitulo: "Simulacro Timer Test",
     simuladoTimerTexto:
       "Mesmo banco de questões, mas em modo prova de verdade: tempo limite por questão (30 a 180 segundos), não dá pra voltar nem pular — se o tempo acabar, conta como erro. Treina o ritmo da prova real.",
+    simuladoCriarTitulo: "Como criar um simulado",
+    simuladoCriarTexto:
+      "Dentro de \"Simulados\", clique em \"Criar simulado\": dê um nome, escolha as matérias (filtrando por ano), se quer excluir questões já respondidas ou usar todas, quantas questões (10 a 60) e o tempo por questão (30 a 180s, vale pro modo Timer Test). Ao criar, ele já abre pronto pra você responder.",
+    simuladoResolverTitulo: "Como resolver um simulado",
+    simuladoResolverTexto:
+      "Escolha uma alternativa e clique em \"Confirmar\" pra ver se acertou — no modo Livre dá pra \"Pular\" uma questão e voltar depois; no Timer Test não dá. No final, clique em \"Finalizar\" pra ver sua aprovação, acertos, erros e % de aproveitamento.",
     desafiosTitulo: "Desafios Clínicos",
     desafiosTexto:
       "Casos clínicos completos, passo a passo: anamnese, exame físico, exames complementares, diagnóstico e conduta, com correção imediata em cada etapa. O primeiro caso de cada bloco é grátis; o resto libera com plano pago.",
+    desafioResolverTitulo: "Como resolver um desafio clínico",
+    desafioResolverTexto:
+      "Leia o caso com atenção — dá pra selecionar um trecho do texto pra grifar, igual um marca-texto. As perguntas vêm organizadas por etapa: anamnese, exame físico, exames complementares, diagnóstico e conduta. Escolha a alternativa e clique em \"Responder\" pra ver a correção na hora, use \"Anterior\"/\"Próxima\" pra navegar entre elas, e \"Finalizar\" na última pra ver sua aprovação, % de acertos e um resumo completo com a resposta certa de cada pergunta.",
     hospitalTitulo: "Hospital Simulação",
     hospitalTexto:
       "Simulação interativa de plantão de verdade: você toma decisões clínicas em tempo real e o sistema registra pressão arterial, erros, tempo até a intervenção e se o paciente sobrevive. Disponível só pra planos pagos.",
@@ -2363,9 +2372,18 @@ const es: typeof pt = {
     simuladoTimerTitulo: "Simulacro Timer Test",
     simuladoTimerTexto:
       "Mismo banco de preguntas, pero en modo examen real: tiempo límite por pregunta (30 a 180 segundos), no podés volver atrás ni saltear — si se acaba el tiempo, cuenta como error. Así entrenás para el ritmo de la prueba de verdad.",
+    simuladoCriarTitulo: "Cómo crear un simulacro",
+    simuladoCriarTexto:
+      "Dentro de \"Simulacros\", tocá \"Crear simulacro\": ponele un nombre, elegí las materias (filtrando por año), si querés excluir las preguntas ya respondidas o usar todas, cuántas preguntas (10 a 60) y el tiempo por pregunta (30 a 180s, vale para el modo Timer Test). Al crearlo, se abre directo listo para responder.",
+    simuladoResolverTitulo: "Cómo resolver un simulacro",
+    simuladoResolverTexto:
+      "Elegí una alternativa y tocá \"Confirmar\" para ver si acertaste — en el modo Libre podés \"Saltear\" una pregunta y volver después; en el Timer Test no se puede. Al final, tocá \"Finalizar\" para ver tu aprobación, aciertos, errores y % de rendimiento.",
     desafiosTitulo: "Desafíos Clínicos",
     desafiosTexto:
       "Casos clínicos completos, paso a paso: anamnesis, examen físico, exámenes complementarios, diagnóstico y conducta, con corrección inmediata en cada etapa. El primer caso de cada bloque es gratis; el resto se libera con un plan pago.",
+    desafioResolverTitulo: "Cómo resolver un desafío clínico",
+    desafioResolverTexto:
+      "Leé el caso con atención — podés seleccionar una parte del texto para marcarla, como un resaltador. Las preguntas vienen organizadas por etapa: anamnesis, examen físico, exámenes complementarios, diagnóstico y conducta. Elegí la alternativa y tocá \"Responder\" para ver la corrección al toque, usá \"Anterior\"/\"Siguiente\" para navegar entre ellas, y \"Finalizar\" en la última para ver tu aprobación, % de aciertos y un resumen completo con la respuesta correcta de cada pregunta.",
     hospitalTitulo: "Hospital de Simulación",
     hospitalTexto:
       "Simulación interactiva de guardia real: tomás decisiones clínicas en tiempo real y el sistema registra presión arterial, errores, tiempo hasta la intervención y si el paciente sobrevive. Disponible solo para planes pagos.",

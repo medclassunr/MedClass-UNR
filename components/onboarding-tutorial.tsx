@@ -9,7 +9,7 @@
 // aleatória (nunca repetida 2x seguidas) é sorteada a cada passo.
 //
 // Dois jeitos de abrir:
-// 1. Tour completo (18 passos): sozinho na primeira vez que o aluno abre
+// 1. Tour completo (21 passos): sozinho na primeira vez que o aluno abre
 //    o dashboard (profiles.tutorial_dashboard_visto ainda false -- ver
 //    lib/tutorial-status.ts e a migration correspondente, que precisa
 //    ser rodada manualmente no SQL Editor do Supabase antes disso
@@ -58,7 +58,10 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "gridTitulo", textoKey: "gridTexto", selector: '[data-tutorial="quick-access-grid"]' },
   { tituloKey: "simuladoLivreTitulo", textoKey: "simuladoLivreTexto", selector: '[data-tutorial="tile-simulacro-libre"]' },
   { tituloKey: "simuladoTimerTitulo", textoKey: "simuladoTimerTexto", selector: '[data-tutorial="tile-simulacro-timer"]' },
+  { tituloKey: "simuladoCriarTitulo", textoKey: "simuladoCriarTexto", selector: null },
+  { tituloKey: "simuladoResolverTitulo", textoKey: "simuladoResolverTexto", selector: null },
   { tituloKey: "desafiosTitulo", textoKey: "desafiosTexto", selector: '[data-tutorial="tile-desafios-clinicos"]' },
+  { tituloKey: "desafioResolverTitulo", textoKey: "desafioResolverTexto", selector: null },
   { tituloKey: "hospitalTitulo", textoKey: "hospitalTexto", selector: '[data-tutorial="tile-hospital-simulacao"]' },
   { tituloKey: "cronogramaTitulo", textoKey: "cronogramaTexto", selector: '[data-tutorial="tile-cronograma"]', avatarIdx: 3 },
   { tituloKey: "atividadesUnrTitulo", textoKey: "atividadesUnrTexto", selector: '[data-tutorial="tile-atividades-unr"]' },
