@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowRight,
@@ -38,6 +38,7 @@ import { PracticeLauncher } from "@/components/practice-launcher"
 import { GeneratingOverlay } from "@/components/generating-overlay"
 import { Pagination, PAGE_SIZE } from "@/components/pagination"
 import { useLanguage } from "@/lib/i18n"
+import { useTutorial, PASSOS_CRIAR_SIMULADO } from "@/components/onboarding-tutorial"
 
 interface Simulado {
   id: string
@@ -69,6 +70,7 @@ export function SimuladosContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { abrirAjudaPagina } = useTutorial()
   const [simulados, setSimulados] = useState<Simulado[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -77,6 +79,21 @@ export function SimuladosContent() {
   useEffect(() => {
     if (searchParams.get("novo") === "true") setOpen(true)
   }, [searchParams])
+
+  // Vindo do passo "Como criar um simulado" do tour do dashboard
+  // (?novo=true&tutorialCriar=true) -- o diálogo já abre (efeito acima),
+  // aqui só dispara o passo a passo campo a campo assim que ele estiver
+  // de fato na tela. tutorialCriarDisparado evita repetir se searchParams
+  // mudar de identidade sem o valor em si ter mudado.
+  const tutorialCriarDisparado = useRef(false)
+  useEffect(() => {
+    if (!open) return
+    if (searchParams.get("tutorialCriar") !== "true") return
+    if (tutorialCriarDisparado.current) return
+    tutorialCriarDisparado.current = true
+    abrirAjudaPagina(PASSOS_CRIAR_SIMULADO)
+    router.replace(pathname)
+  }, [open, searchParams, abrirAjudaPagina, router, pathname])
 
   const [playerConfig, setPlayerConfig] = useState<SimuladoConfig | null>(null)
   const [playerOpen, setPlayerOpen] = useState(false)
@@ -328,7 +345,7 @@ export function SimuladosContent() {
               </DialogHeader>
 
               <form onSubmit={handleSubmit} className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
-                <div>
+                <div data-tutorial="simulado-form-nome">
                   <label htmlFor="name" className="mb-1 block text-sm font-medium text-foreground">
                     {t.treinamentos.nomeDoSimulado}
                   </label>
@@ -342,7 +359,7 @@ export function SimuladosContent() {
                   />
                 </div>
 
-                <div>
+                <div data-tutorial="simulado-form-materias">
                   <label className="mb-2 block text-sm font-medium text-foreground">
                     {t.treinamentos.materiaLabelNenhuma}
                   </label>
@@ -399,7 +416,7 @@ export function SimuladosContent() {
                   )}
                 </div>
 
-                <div>
+                <div data-tutorial="simulado-form-ineditas">
                   <label className="mb-2 block text-sm font-medium text-foreground">{t.treinamentos.questoesLabel}</label>
                   <div className="flex gap-2">
                     <button
@@ -424,7 +441,7 @@ export function SimuladosContent() {
                 </div>
 
                 {selectedMaterias.length > 0 && (
-                  <div>
+                  <div data-tutorial="simulado-form-parcial">
                     <label className="mb-2 block text-sm font-medium text-foreground">{t.treinamentos.parcial}</label>
                     <div className="flex gap-2">
                       <button
@@ -452,7 +469,7 @@ export function SimuladosContent() {
                   </div>
                 )}
 
-                <div>
+                <div data-tutorial="simulado-form-quantidade">
                   <label className="mb-2 block text-sm font-medium text-foreground">
                     {t.treinamentos.quantidadeDeQuestoes}
                   </label>
@@ -474,7 +491,7 @@ export function SimuladosContent() {
                   </div>
                 </div>
 
-                <div className="space-y-2 rounded-lg border border-border p-3">
+                <div className="space-y-2 rounded-lg border border-border p-3" data-tutorial="simulado-form-tempo">
                   <div>
                     <p className="text-sm font-medium text-foreground">{t.treinamentos.tempoPorQuestao}</p>
                     <p className="text-xs text-muted-foreground">{t.treinamentos.tempoPorQuestaoDesc}</p>
@@ -499,7 +516,7 @@ export function SimuladosContent() {
 
                 {createError && <p className="text-xs text-destructive">{createError}</p>}
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-2" data-tutorial="simulado-form-criar">
                   <Button type="submit" variant="gradient" className="flex-1 gap-1.5" disabled={creating || !nome.trim()}>
                     {creating && <Loader2 className="h-4 w-4 animate-spin" />}
                     {t.treinamentos.criarSimulado}

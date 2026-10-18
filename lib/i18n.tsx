@@ -1151,7 +1151,28 @@ const pt = {
       "Mesmo banco de questões, mas em modo prova de verdade: tempo limite por questão (30 a 180 segundos), não dá pra voltar nem pular — se o tempo acabar, conta como erro. Treina o ritmo da prova real.",
     simuladoCriarTitulo: "Como criar um simulado",
     simuladoCriarTexto:
-      "Dentro de \"Simulados\", clique em \"Criar simulado\": dê um nome, escolha as matérias (filtrando por ano), se quer excluir questões já respondidas ou usar todas, quantas questões (10 a 60) e o tempo por questão (30 a 180s, vale pro modo Timer Test). Ao criar, ele já abre pronto pra você responder.",
+      "Dentro de \"Simulados\", clique em \"Criar simulado\": dê um nome, escolha as matérias (filtrando por ano), se quer excluir questões já respondidas ou usar todas, quantas questões (10 a 60) e o tempo por questão (30 a 180s). Ao criar, ele já abre pronto pra você responder. Clique em \"Ir pra Simulados\" abaixo pra ver isso na tela de verdade, campo a campo.",
+    irParaSimulados: "Ir pra Simulados",
+    criarSimuladoNomeTitulo: "1. Dê um nome",
+    criarSimuladoNomeTexto:
+      "Escreva um nome pra identificar esse simulado depois na sua lista — pode ser algo como \"Revisão Cardio\" ou \"Simulado antes da prova\".",
+    criarSimuladoMateriasTitulo: "2. Escolha as matérias",
+    criarSimuladoMateriasTexto:
+      "Filtre por ano e toque nas matérias que quer incluir. Não escolher nenhuma = o simulado pega questões de todas as matérias misturadas.",
+    criarSimuladoIneditasTitulo: "3. Questões inéditas ou todas",
+    criarSimuladoIneditasTexto:
+      "\"Excluir já respondidas\" pega só questões que você nunca viu; \"Todas as questões\" inclui até as que já respondeu antes — boa opção pra revisar.",
+    criarSimuladoParcialTitulo: "4. Parcial (opcional)",
+    criarSimuladoParcialTexto:
+      "Pra focar num parcial específico da matéria escolhida, selecione aqui. Esse campo só aparece depois que você escolhe pelo menos 1 matéria no passo anterior.",
+    criarSimuladoQuantidadeTitulo: "5. Quantidade de questões",
+    criarSimuladoQuantidadeTexto: "Escolha quantas questões o simulado vai ter: de 10 a 60.",
+    criarSimuladoTempoTitulo: "6. Tempo por questão",
+    criarSimuladoTempoTexto:
+      "Todo simulado criado aqui tem tempo limite por questão (30 a 180 segundos) e não dá pra voltar às anteriores — é o modo prova de verdade. Escolha o tempo que quiser treinar.",
+    criarSimuladoBotaoTitulo: "7. Criar e começar",
+    criarSimuladoBotaoTexto:
+      "Pronto! Toque em \"Criar Simulado\" e ele já abre na hora, pronto pra você responder a primeira questão.",
     simuladoResolverTitulo: "Como resolver um simulado",
     simuladoResolverTexto:
       "Escolha uma alternativa e clique em \"Confirmar\" pra ver se acertou — no modo Livre dá pra \"Pular\" uma questão e voltar depois; no Timer Test não dá. No final, clique em \"Finalizar\" pra ver sua aprovação, acertos, erros e % de aproveitamento.",
@@ -2374,7 +2395,28 @@ const es: typeof pt = {
       "Mismo banco de preguntas, pero en modo examen real: tiempo límite por pregunta (30 a 180 segundos), no podés volver atrás ni saltear — si se acaba el tiempo, cuenta como error. Así entrenás para el ritmo de la prueba de verdad.",
     simuladoCriarTitulo: "Cómo crear un simulacro",
     simuladoCriarTexto:
-      "Dentro de \"Simulacros\", tocá \"Crear simulacro\": ponele un nombre, elegí las materias (filtrando por año), si querés excluir las preguntas ya respondidas o usar todas, cuántas preguntas (10 a 60) y el tiempo por pregunta (30 a 180s, vale para el modo Timer Test). Al crearlo, se abre directo listo para responder.",
+      "Dentro de \"Simulacros\", tocá \"Crear simulacro\": ponele un nombre, elegí las materias (filtrando por año), si querés excluir las preguntas ya respondidas o usar todas, cuántas preguntas (10 a 60) y el tiempo por pregunta (30 a 180s). Al crearlo, se abre directo listo para responder. Tocá \"Ir a Simulacros\" abajo para verlo en la pantalla real, campo por campo.",
+    irParaSimulados: "Ir a Simulacros",
+    criarSimuladoNomeTitulo: "1. Ponele un nombre",
+    criarSimuladoNomeTexto:
+      "Escribí un nombre para identificar este simulacro después en tu lista — puede ser algo como \"Repaso Cardio\" o \"Simulacro antes del parcial\".",
+    criarSimuladoMateriasTitulo: "2. Elegí las materias",
+    criarSimuladoMateriasTexto:
+      "Filtrá por año y tocá las materias que querés incluir. Si no elegís ninguna, el simulacro toma preguntas de todas las materias mezcladas.",
+    criarSimuladoIneditasTitulo: "3. Preguntas inéditas o todas",
+    criarSimuladoIneditasTexto:
+      "\"Excluir ya respondidas\" toma solo preguntas que nunca viste; \"Todas las preguntas\" incluye hasta las que ya respondiste antes — buena opción para repasar.",
+    criarSimuladoParcialTitulo: "4. Parcial (opcional)",
+    criarSimuladoParcialTexto:
+      "Para enfocarte en un parcial específico de la materia elegida, seleccionalo acá. Este campo solo aparece después de elegir al menos 1 materia en el paso anterior.",
+    criarSimuladoQuantidadeTitulo: "5. Cantidad de preguntas",
+    criarSimuladoQuantidadeTexto: "Elegí cuántas preguntas va a tener el simulacro: de 10 a 60.",
+    criarSimuladoTempoTitulo: "6. Tiempo por pregunta",
+    criarSimuladoTempoTexto:
+      "Todo simulacro creado acá tiene tiempo límite por pregunta (30 a 180 segundos) y no se puede volver a las anteriores — es el modo examen real. Elegí el tiempo con el que querés entrenar.",
+    criarSimuladoBotaoTitulo: "7. Crear y arrancar",
+    criarSimuladoBotaoTexto:
+      "¡Listo! Tocá \"Crear Simulacro\" y se abre al toque, listo para que respondas la primera pregunta.",
     simuladoResolverTitulo: "Cómo resolver un simulacro",
     simuladoResolverTexto:
       "Elegí una alternativa y tocá \"Confirmar\" para ver si acertaste — en el modo Libre podés \"Saltear\" una pregunta y volver después; en el Timer Test no se puede. Al final, tocá \"Finalizar\" para ver tu aprobación, aciertos, errores y % de rendimiento.",

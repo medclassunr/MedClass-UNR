@@ -29,6 +29,7 @@
 // destacar algo na própria página que já está aberta).
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react"
+import { useRouter } from "next/navigation"
 import { GraduationCap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage, translations } from "@/lib/i18n"
@@ -46,6 +47,17 @@ export interface TutorialStep {
   avatarIdx?: number
   /** Mostra um botão extra de WhatsApp (ex.: passo "Planos Premium" do FAQ). */
   ctaWhatsapp?: boolean
+  /** Em vez de avançar pro próximo passo, navega pra essa rota (ex.: "Como
+   *  criar um simulado" leva pra tela real de Simulados, que dispara
+   *  PASSOS_CRIAR_SIMULADO lá -- ver simulados-content.tsx). Marca o tour
+   *  como visto antes de navegar (mesmo efeito de terminar/pular), já que
+   *  o resto dos passos não teria como continuar depois da navegação (cada
+   *  página do dashboard tem seu próprio TutorialProvider, não é estado
+   *  compartilhado entre rotas). */
+  aoAvancarRoute?: string
+  /** Troca o texto do botão de avançar (padrão: "Próximo"/"Siguiente") --
+   *  usado junto de aoAvancarRoute pra deixar claro que vai navegar. */
+  labelAvancarKey?: keyof TutorialCopy
 }
 
 const WHATSAPP_SUPORTE_URL = "https://wa.me/543417214945"
@@ -58,7 +70,13 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "gridTitulo", textoKey: "gridTexto", selector: '[data-tutorial="quick-access-grid"]' },
   { tituloKey: "simuladoLivreTitulo", textoKey: "simuladoLivreTexto", selector: '[data-tutorial="tile-simulacro-libre"]' },
   { tituloKey: "simuladoTimerTitulo", textoKey: "simuladoTimerTexto", selector: '[data-tutorial="tile-simulacro-timer"]' },
-  { tituloKey: "simuladoCriarTitulo", textoKey: "simuladoCriarTexto", selector: null },
+  {
+    tituloKey: "simuladoCriarTitulo",
+    textoKey: "simuladoCriarTexto",
+    selector: null,
+    aoAvancarRoute: "/dashboard/simulados?novo=true&tutorialCriar=true",
+    labelAvancarKey: "irParaSimulados",
+  },
   { tituloKey: "simuladoResolverTitulo", textoKey: "simuladoResolverTexto", selector: null },
   { tituloKey: "desafiosTitulo", textoKey: "desafiosTexto", selector: '[data-tutorial="tile-desafios-clinicos"]' },
   { tituloKey: "desafioResolverTitulo", textoKey: "desafioResolverTexto", selector: null },
@@ -73,6 +91,25 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "rankingTitulo", textoKey: "rankingTexto", selector: '[data-tutorial="ranking-widget"]' },
   { tituloKey: "comunidadeTitulo", textoKey: "comunidadeTexto", selector: '[data-tutorial="comunidade-banner"]' },
   { tituloKey: "fechamentoTitulo", textoKey: "fechamentoTexto", selector: null },
+]
+
+// Passo a passo campo a campo do diálogo "Criar simulado" -- disparado
+// pelo passo "Como criar um simulado" do tour completo (aoAvancarRoute
+// leva pra /dashboard/simulados?novo=true&tutorialCriar=true) e também
+// reaproveitável como ajuda de página futuramente. Os seletores batem
+// com os data-tutorial="simulado-form-*" em components/simulados-content.tsx.
+// O passo "simulado-form-parcial" só existe se alguma matéria já estiver
+// selecionada (campo condicional) -- se o aluno ainda não escolheu
+// nenhuma, esse passo aparece sem spotlight (mesmo fallback de sempre:
+// elemento não encontrado = sem destaque), o texto já avisa disso.
+export const PASSOS_CRIAR_SIMULADO: TutorialStep[] = [
+  { tituloKey: "criarSimuladoNomeTitulo", textoKey: "criarSimuladoNomeTexto", selector: '[data-tutorial="simulado-form-nome"]' },
+  { tituloKey: "criarSimuladoMateriasTitulo", textoKey: "criarSimuladoMateriasTexto", selector: '[data-tutorial="simulado-form-materias"]' },
+  { tituloKey: "criarSimuladoIneditasTitulo", textoKey: "criarSimuladoIneditasTexto", selector: '[data-tutorial="simulado-form-ineditas"]' },
+  { tituloKey: "criarSimuladoParcialTitulo", textoKey: "criarSimuladoParcialTexto", selector: '[data-tutorial="simulado-form-parcial"]' },
+  { tituloKey: "criarSimuladoQuantidadeTitulo", textoKey: "criarSimuladoQuantidadeTexto", selector: '[data-tutorial="simulado-form-quantidade"]' },
+  { tituloKey: "criarSimuladoTempoTitulo", textoKey: "criarSimuladoTempoTexto", selector: '[data-tutorial="simulado-form-tempo"]' },
+  { tituloKey: "criarSimuladoBotaoTitulo", textoKey: "criarSimuladoBotaoTexto", selector: '[data-tutorial="simulado-form-criar"]' },
 ]
 
 // PNG, não WebP -- o WebP com canal alpha tem bugs de renderização
@@ -118,6 +155,7 @@ export function useTutorial() {
 
 export function TutorialProvider({ children }: { children: ReactNode }) {
   const { t } = useLanguage()
+  const router = useRouter()
   const [passos, setPassos] = useState<TutorialStep[]>(TOUR_COMPLETO)
   const [aberto, setAberto] = useState(false)
   const [passoAtual, setPassoAtual] = useState(0)
@@ -137,7 +175,14 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   }, [aberto, passoAtual, passos])
 
   // Tour completo sozinho só na 1ª vez (profiles.tutorial_dashboard_visto).
+  // Pula essa checagem se a URL já tem ?tutorialCriar=true -- veio de
+  // aoAvancarRoute (ver avancar()), que marca visto e navega pra cá antes
+  // da escrita no Supabase confirmar; sem esse bypass síncrono (direto na
+  // URL, não depende de rede) essa página ainda poderia abrir o tour
+  // completo do zero por cima do passo a passo que simulados-content.tsx
+  // está prestes a disparar.
   useEffect(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tutorialCriar")) return
     getTutorialVisto().then((visto) => {
       if (!visto) {
         setPassos(TOUR_COMPLETO)
@@ -213,6 +258,19 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   }
 
   function avancar() {
+    const atual = passos[passoAtual]
+    if (atual?.aoAvancarRoute) {
+      // Navegar troca de página -- cada página tem seu próprio
+      // TutorialProvider (ver dashboard-layout.tsx), então o tour atual
+      // termina aqui de qualquer forma (não tem como "continuar" depois
+      // do remount). Marca como visto igual a terminar/pular, pra não
+      // reabrir do zero na próxima vez que o aluno cair no dashboard.
+      setAberto(false)
+      setRect(null)
+      marcarTutorialVisto()
+      router.push(atual.aoAvancarRoute)
+      return
+    }
     if (passoAtual + 1 >= passos.length) {
       encerrar()
       return
@@ -306,7 +364,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                       {t.tutorialDashboard.pular}
                     </Button>
                     <Button type="button" variant="gradient" onClick={avancar}>
-                      {ultimo ? t.tutorialDashboard.entendido : t.tutorialDashboard.proximo}
+                      {passo.labelAvancarKey
+                        ? t.tutorialDashboard[passo.labelAvancarKey]
+                        : ultimo
+                          ? t.tutorialDashboard.entendido
+                          : t.tutorialDashboard.proximo}
                     </Button>
                   </>
                 ) : passo.ctaWhatsapp ? (
