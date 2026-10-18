@@ -1,7 +1,21 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { ArrowLeft, BookOpen, Download, Eye, FileText, Folder, Loader2, NotebookPen, X } from "lucide-react"
+import {
+  ArrowLeft,
+  BookOpen,
+  Download,
+  Eye,
+  File,
+  FileSpreadsheet,
+  FileText,
+  Folder,
+  Image as ImageIcon,
+  Loader2,
+  NotebookPen,
+  Presentation,
+  X,
+} from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -38,6 +52,26 @@ function formatBytes(bytes?: string) {
   if (!Number.isFinite(n) || n <= 0) return ""
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`
   return `${(n / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function extensaoArquivo(nome: string) {
+  const match = /\.([a-zA-Z0-9]+)$/.exec(nome)
+  return match ? match[1].toUpperCase() : ""
+}
+
+// Ícone por tipo de arquivo (não por matéria) -- numa lista longa, é essa
+// diferenciação por tipo que ajuda o aluno a identificar o arquivo de
+// relance, a cor da matéria já fica só no cabeçalho da página.
+function iconeArquivo(mimeType: string): { Icon: typeof FileText; cor: string; bg: string } {
+  if (mimeType === "application/pdf") return { Icon: FileText, cor: "text-rose-500", bg: "bg-rose-500/10" }
+  if (mimeType.startsWith("image/")) return { Icon: ImageIcon, cor: "text-blue-500", bg: "bg-blue-500/10" }
+  if (mimeType.includes("spreadsheet") || mimeType.includes("excel"))
+    return { Icon: FileSpreadsheet, cor: "text-emerald-500", bg: "bg-emerald-500/10" }
+  if (mimeType.includes("presentation") || mimeType.includes("powerpoint"))
+    return { Icon: Presentation, cor: "text-amber-500", bg: "bg-amber-500/10" }
+  if (mimeType.includes("word") || mimeType.includes("document"))
+    return { Icon: FileText, cor: "text-sky-500", bg: "bg-sky-500/10" }
+  return { Icon: File, cor: "text-muted-foreground", bg: "bg-muted" }
 }
 
 // Ciências Básicas (Anatomia, Fisiologia etc.) têm livro-texto/atlas de
@@ -176,45 +210,57 @@ export function BibliotecaDriveContent() {
             <p className="text-sm text-muted-foreground">{t.biblioteca.vazioPasta}</p>
           </Card>
         ) : (
-          <div className="space-y-2">
-            {arquivos.map((arquivo) => (
-              <Card
-                key={arquivo.id}
-                className="flex items-center gap-3 border border-border bg-card p-3 transition-colors hover:border-primary/40"
-              >
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${cor.bgSoft}`}>
-                  <FileText className={`h-5 w-5 ${cor.text}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{arquivo.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatBytes(arquivo.size)}</p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleVisualizar(arquivo)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    title={t.biblioteca.visualizar}
+          <Card className="overflow-hidden border border-border bg-card p-0">
+            <p className="border-b border-border px-4 py-2 text-xs font-medium text-muted-foreground">
+              {t.biblioteca.itensCount(arquivos.length)}
+            </p>
+            <div className="divide-y divide-border">
+              {arquivos.map((arquivo) => {
+                const { Icon, cor: corIcone, bg } = iconeArquivo(arquivo.mimeType)
+                const ext = extensaoArquivo(arquivo.name)
+                return (
+                  <div
+                    key={arquivo.id}
+                    className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted/50"
                   >
-                    <Eye className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleBaixar(arquivo)}
-                    disabled={baixandoId === arquivo.id}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
-                    title={t.biblioteca.baixar}
-                  >
-                    {baixandoId === arquivo.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </Card>
-            ))}
-          </div>
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${bg}`}>
+                      <Icon className={`h-4 w-4 ${corIcone}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{arquivo.name}</p>
+                    </div>
+                    <div className="hidden shrink-0 items-center gap-2 text-xs text-muted-foreground sm:flex">
+                      {ext && <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium">{ext}</Badge>}
+                      <span className="tabular-nums">{formatBytes(arquivo.size)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleVisualizar(arquivo)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        title={t.biblioteca.visualizar}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleBaixar(arquivo)}
+                        disabled={baixandoId === arquivo.id}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                        title={t.biblioteca.baixar}
+                      >
+                        {baixandoId === arquivo.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
         )}
 
         {visualizando && tokenAtual && (
