@@ -15,6 +15,7 @@ import {
   PlayCircle,
   FileText,
   Layers,
+  FolderOpen,
   LogOut,
   ArrowLeft,
   BarChart3,
@@ -49,6 +50,7 @@ const adminNavigation: AdminNavItem[] = [
   { name: "Controle de Acessos", href: "/admin/acessos", icon: ShieldCheck },
   { name: "Videoaulas", href: "/admin/videoaulas", icon: PlayCircle },
   { name: "Resumos", href: "/admin/resumos", icon: FileText },
+  { name: "Biblioteca (Drive)", href: "/admin/biblioteca", icon: FolderOpen },
   { name: "Flashcards", href: "/admin/flashcards", icon: Layers },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ]
@@ -68,6 +70,7 @@ export function AdminSidebar({ onNavigate, role = "admin" }: AdminSidebarProps) 
     "/admin/flashcards",
     "/admin/videoaulas",
     "/admin/resumos",
+    "/admin/biblioteca",
     "/admin/desafios",
   ]
 

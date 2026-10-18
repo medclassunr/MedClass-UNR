@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { VideoaulasGrid } from "@/components/videoaulas-grid"
 import { FlashcardDecksGrid } from "@/components/flashcard-decks-grid"
-import { ResumosGrid } from "@/components/resumos-grid"
+import { BibliotecaDriveContent } from "@/components/biblioteca-drive-content"
 import { useLanguage } from "@/lib/i18n"
 
 const VALID_TABS = ["videoaulas", "resumos", "flashcards"]
@@ -38,7 +38,7 @@ export function MateriaisContent() {
       </TabsContent>
 
       <TabsContent value="resumos">
-        <ResumosGrid />
+        <BibliotecaDriveContent />
       </TabsContent>
 
       <TabsContent value="flashcards">
