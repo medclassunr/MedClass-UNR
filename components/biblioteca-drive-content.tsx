@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "@/lib/i18n"
 import { ANO_KEYS, DISCIPLINA_BASE_KEYS, MATERIA_KEYS_BY_ANO, type AnoKey } from "@/lib/unr-curriculum"
 import { getAnoColor, getMateriaColor } from "@/lib/materia-colors"
+import { BibliotecaPdfEditor } from "@/components/biblioteca-pdf-editor"
 
 interface PastaConfig {
   id: string
@@ -290,7 +291,15 @@ export function BibliotecaDriveContent() {
           </Card>
         )}
 
-        {visualizando && tokenAtual && (
+        {visualizando && visualizando.mimeType === "application/pdf" && (
+          <BibliotecaPdfEditor
+            driveFileId={visualizando.id}
+            nome={visualizando.name}
+            onClose={() => setVisualizando(null)}
+          />
+        )}
+
+        {visualizando && visualizando.mimeType !== "application/pdf" && tokenAtual && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
             <div className="flex h-full max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-card shadow-2xl">
               <div className="flex items-center justify-between border-b border-border p-3">
