@@ -58,6 +58,13 @@ export interface TutorialStep {
   /** Troca o texto do botão de avançar (padrão: "Próximo"/"Siguiente") --
    *  usado junto de aoAvancarRoute pra deixar claro que vai navegar. */
   labelAvancarKey?: keyof TutorialCopy
+  /** Põe o cartão do tutorial encostado na esquerda (vertical, sem o
+   *  "bleeding" lateral do avatar) em vez do padrão centralizado embaixo
+   *  -- usado quando o passo tem um Dialog/painel real aberto que precisa
+   *  ficar visível do lado direito (ex.: PASSOS_CRIAR_SIMULADO, onde o
+   *  diálogo de criar simulado também se desloca pra direita -- ver
+   *  simulados-content.tsx). */
+  cardNaEsquerda?: boolean
 }
 
 const WHATSAPP_SUPORTE_URL = "https://wa.me/543417214945"
@@ -103,13 +110,13 @@ export const TOUR_COMPLETO: TutorialStep[] = [
 // nenhuma, esse passo aparece sem spotlight (mesmo fallback de sempre:
 // elemento não encontrado = sem destaque), o texto já avisa disso.
 export const PASSOS_CRIAR_SIMULADO: TutorialStep[] = [
-  { tituloKey: "criarSimuladoNomeTitulo", textoKey: "criarSimuladoNomeTexto", selector: '[data-tutorial="simulado-form-nome"]' },
-  { tituloKey: "criarSimuladoMateriasTitulo", textoKey: "criarSimuladoMateriasTexto", selector: '[data-tutorial="simulado-form-materias"]' },
-  { tituloKey: "criarSimuladoIneditasTitulo", textoKey: "criarSimuladoIneditasTexto", selector: '[data-tutorial="simulado-form-ineditas"]' },
-  { tituloKey: "criarSimuladoParcialTitulo", textoKey: "criarSimuladoParcialTexto", selector: '[data-tutorial="simulado-form-parcial"]' },
-  { tituloKey: "criarSimuladoQuantidadeTitulo", textoKey: "criarSimuladoQuantidadeTexto", selector: '[data-tutorial="simulado-form-quantidade"]' },
-  { tituloKey: "criarSimuladoTempoTitulo", textoKey: "criarSimuladoTempoTexto", selector: '[data-tutorial="simulado-form-tempo"]' },
-  { tituloKey: "criarSimuladoBotaoTitulo", textoKey: "criarSimuladoBotaoTexto", selector: '[data-tutorial="simulado-form-criar"]' },
+  { tituloKey: "criarSimuladoNomeTitulo", textoKey: "criarSimuladoNomeTexto", selector: '[data-tutorial="simulado-form-nome"]', cardNaEsquerda: true },
+  { tituloKey: "criarSimuladoMateriasTitulo", textoKey: "criarSimuladoMateriasTexto", selector: '[data-tutorial="simulado-form-materias"]', cardNaEsquerda: true },
+  { tituloKey: "criarSimuladoIneditasTitulo", textoKey: "criarSimuladoIneditasTexto", selector: '[data-tutorial="simulado-form-ineditas"]', cardNaEsquerda: true },
+  { tituloKey: "criarSimuladoParcialTitulo", textoKey: "criarSimuladoParcialTexto", selector: '[data-tutorial="simulado-form-parcial"]', cardNaEsquerda: true },
+  { tituloKey: "criarSimuladoQuantidadeTitulo", textoKey: "criarSimuladoQuantidadeTexto", selector: '[data-tutorial="simulado-form-quantidade"]', cardNaEsquerda: true },
+  { tituloKey: "criarSimuladoTempoTitulo", textoKey: "criarSimuladoTempoTexto", selector: '[data-tutorial="simulado-form-tempo"]', cardNaEsquerda: true },
+  { tituloKey: "criarSimuladoBotaoTitulo", textoKey: "criarSimuladoBotaoTexto", selector: '[data-tutorial="simulado-form-criar"]', cardNaEsquerda: true },
 ]
 
 // PNG, não WebP -- o WebP com canal alpha tem bugs de renderização
@@ -311,6 +318,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const passo = passos[passoAtual]
   const ultimo = passoAtual === passos.length - 1
   const ladoInvertido = passoAtual % 2 === 1
+  const cardEsquerda = !!passo?.cardNaEsquerda
   const avatarSrc = AVATAR_FRAMES[avatarIdx]
   const contador = t.tutorialDashboard.contadorPasso
     .replace("{atual}", String(passoAtual + 1))
@@ -371,19 +379,32 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
               card e "estoura" pra fora dele (bleeding), em cima no mobile
               (sobe acima do topo) e pro lado no desktop (alternando
               esquerda/direita a cada passo), enquanto uma parte do corpo
-              dela continua sobreposta à área do card onde fica o texto. */}
-          <div className="fixed bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl border border-border bg-card p-6 shadow-2xl">
+              dela continua sobreposta à área do card onde fica o texto.
+              cardNaEsquerda (ver PASSOS_CRIAR_SIMULADO) foge desse padrão:
+              fica preso na vertical à esquerda da tela, e o Dialog real
+              que o passo explica desliza pro lado direito (ver
+              simulados-content.tsx) -- os dois cabem na tela ao mesmo
+              tempo, sem o cartão cobrir o campo que ele está apontando. */}
+          <div
+            className={
+              cardEsquerda
+                ? "fixed left-4 top-1/2 w-[calc(100%-2rem)] max-w-sm -translate-y-1/2 rounded-2xl border border-border bg-card p-6 shadow-2xl sm:left-6"
+                : "fixed bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 rounded-2xl border border-border bg-card p-6 shadow-2xl"
+            }
+          >
             <img
               src={avatarSrc}
               alt=""
-              className={`pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain sm:left-auto sm:top-auto sm:h-[370px] sm:translate-x-0 sm:bottom-[-14px] ${
-                ladoInvertido ? "sm:right-[-10px]" : "sm:left-[-10px]"
-              }`}
+              className={
+                cardEsquerda
+                  ? "pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain"
+                  : `pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain sm:left-auto sm:top-auto sm:h-[370px] sm:translate-x-0 sm:bottom-[-14px] ${
+                      ladoInvertido ? "sm:right-[-10px]" : "sm:left-[-10px]"
+                    }`
+              }
             />
 
-            <div
-              className={`relative pt-[40px] sm:pt-0 ${ladoInvertido ? "sm:pr-[235px]" : "sm:pl-[235px]"}`}
-            >
+            <div className={cardEsquerda ? "relative pt-[40px]" : `relative pt-[40px] sm:pt-0 ${ladoInvertido ? "sm:pr-[235px]" : "sm:pl-[235px]"}`}>
               <div>
                 {passos.length > 1 && (
                   <p className="text-[11px] font-bold uppercase tracking-wide text-primary">{contador}</p>

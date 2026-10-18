@@ -340,7 +340,16 @@ export function SimuladosContent() {
               </Button>
             </DialogTrigger>
             <DialogContent
-              className="max-w-md"
+              // Com o tutorial rodando, o cartão de explicação fica preso
+              // na vertical à esquerda da tela (cardNaEsquerda, ver
+              // onboarding-tutorial.tsx) -- desloca e alarga o diálogo pra
+              // direita aqui, pra não ficar um cobrindo o outro (era esse
+              // o problema: o cartão sobrepunha campos como "Parcial").
+              className={
+                tutorialAberto
+                  ? "max-w-md left-auto right-4 translate-x-0 sm:right-12 sm:max-w-2xl"
+                  : "max-w-md"
+              }
               // Os botões do tutorial (Próximo/Pular/Entendi) ficam num
               // overlay próprio, fora deste DialogContent -- sem isso, o
               // Radix interpreta o clique neles como "fora do diálogo" e
