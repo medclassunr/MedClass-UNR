@@ -1,17 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import {
-  ArrowLeft,
-  BookOpen,
-  Download,
-  Eye,
-  FileText,
-  Folder,
-  Loader2,
-  NotebookPen,
-  X,
-} from "lucide-react"
+import { ArrowLeft, BookOpen, Download, Eye, FileText, Folder, Loader2, NotebookPen, X } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -50,14 +40,22 @@ function formatBytes(bytes?: string) {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`
 }
 
-type Navegacao = { materiaKey: string | null; tipo: "livro" | "resumo" | null }
+// Ciências Básicas (Anatomia, Fisiologia etc.) têm livro-texto/atlas de
+// referência -- a pasta ali é do tipo "livro". As demais matérias (por ano:
+// CyD, Nutrição, Sexualidade etc.) só têm resumo de prova -- a pasta ali é
+// do tipo "resumo". Por isso não existe mais tela intermediária escolhendo
+// Libros/Resúmenes: o tipo é implícito pela seção, clicar na matéria já
+// abre a lista de arquivos direto.
+function tipoDaMateria(materiaKey: string): "livro" | "resumo" {
+  return (DISCIPLINA_BASE_KEYS as readonly string[]).includes(materiaKey) ? "livro" : "resumo"
+}
 
 export function BibliotecaDriveContent() {
   const { t } = useLanguage()
   const [pastas, setPastas] = useState<PastaConfig[]>([])
   const [loadingPastas, setLoadingPastas] = useState(true)
   const [erroPastas, setErroPastas] = useState(false)
-  const [nav, setNav] = useState<Navegacao>({ materiaKey: null, tipo: null })
+  const [materiaKey, setMateriaKey] = useState<string | null>(null)
 
   const [arquivos, setArquivos] = useState<DriveArquivo[]>([])
   const [loadingArquivos, setLoadingArquivos] = useState(false)
@@ -77,10 +75,12 @@ export function BibliotecaDriveContent() {
       .finally(() => setLoadingPastas(false))
   }, [])
 
+  const tipoAtual = materiaKey ? tipoDaMateria(materiaKey) : null
+
   const pastaConfigAtual = useMemo(() => {
-    if (!nav.materiaKey || !nav.tipo) return null
-    return pastas.find((p) => p.materia_key === nav.materiaKey && p.tipo === nav.tipo) ?? null
-  }, [pastas, nav])
+    if (!materiaKey || !tipoAtual) return null
+    return pastas.find((p) => p.materia_key === materiaKey && p.tipo === tipoAtual) ?? null
+  }, [pastas, materiaKey, tipoAtual])
 
   useEffect(() => {
     if (!pastaConfigAtual) {
@@ -99,13 +99,10 @@ export function BibliotecaDriveContent() {
       .finally(() => setLoadingArquivos(false))
   }, [pastaConfigAtual])
 
-  const materiasPorAno = (ano: AnoKey) => MATERIA_KEYS_BY_ANO[ano]
-
   const materiaLabel = (key: string) =>
     t.cronograma.materiaLabel[key] ?? t.cronograma.disciplinaBaseLabel[key] ?? key
 
-  const temAlgumaPastaConfigurada = (materiaKey: string) =>
-    pastas.some((p) => p.materia_key === materiaKey)
+  const pastaConfigurada = (key: string) => pastas.some((p) => p.materia_key === key && p.tipo === tipoDaMateria(key))
 
   const handleBaixar = async (arquivo: DriveArquivo) => {
     setBaixandoId(arquivo.id)
@@ -134,27 +131,27 @@ export function BibliotecaDriveContent() {
     setVisualizando(arquivo)
   }
 
-  // ---------- Nível 3: arquivos dentro de Libros/Resúmenes ----------
-  if (nav.materiaKey && nav.tipo) {
-    const cor = getMateriaColor(nav.materiaKey)
+  // ---------- Nível 2: arquivos da matéria (Libros ou Resúmenes, implícito) ----------
+  if (materiaKey && tipoAtual) {
+    const cor = getMateriaColor(materiaKey)
     return (
       <div className="space-y-4">
         <button
           type="button"
-          onClick={() => setNav({ materiaKey: nav.materiaKey, tipo: null })}
+          onClick={() => setMateriaKey(null)}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           {t.biblioteca.voltar}
         </button>
         <div className="flex items-center gap-2">
-          {nav.tipo === "livro" ? (
+          {tipoAtual === "livro" ? (
             <BookOpen className={`h-5 w-5 ${cor.text}`} />
           ) : (
             <NotebookPen className={`h-5 w-5 ${cor.text}`} />
           )}
           <h2 className="text-lg font-semibold text-foreground">
-            {materiaLabel(nav.materiaKey)} · {nav.tipo === "livro" ? t.biblioteca.pastaLivros : t.biblioteca.pastaResumos}
+            {materiaLabel(materiaKey)} · {tipoAtual === "livro" ? t.biblioteca.pastaLivros : t.biblioteca.pastaResumos}
           </h2>
         </div>
 
@@ -245,42 +242,6 @@ export function BibliotecaDriveContent() {
     )
   }
 
-  // ---------- Nível 2: subpastas Libros / Resúmenes ----------
-  if (nav.materiaKey) {
-    const cor = getMateriaColor(nav.materiaKey)
-    return (
-      <div className="space-y-4">
-        <button
-          type="button"
-          onClick={() => setNav({ materiaKey: null, tipo: null })}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t.biblioteca.voltar}
-        </button>
-        <h2 className="text-lg font-semibold text-foreground">{materiaLabel(nav.materiaKey)}</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {(["livro", "resumo"] as const).map((tipo) => (
-            <button key={tipo} type="button" onClick={() => setNav({ materiaKey: nav.materiaKey, tipo })} className="text-left">
-              <Card className={`group overflow-hidden border p-6 transition-all ${cor.borderSoft} bg-card ${cor.hoverBorder} ${cor.hoverGlow}`}>
-                <div className={`mb-3 flex h-12 w-12 items-center justify-center rounded-xl ${cor.bgSoft}`}>
-                  {tipo === "livro" ? (
-                    <BookOpen className={`h-6 w-6 ${cor.text} transition-transform group-hover:scale-110`} />
-                  ) : (
-                    <NotebookPen className={`h-6 w-6 ${cor.text} transition-transform group-hover:scale-110`} />
-                  )}
-                </div>
-                <h3 className="text-base font-semibold text-foreground">
-                  {tipo === "livro" ? t.biblioteca.pastaLivros : t.biblioteca.pastaResumos}
-                </h3>
-              </Card>
-            </button>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   // ---------- Nível 1: pastas por matéria, agrupadas por ano ----------
   if (loadingPastas) {
     return (
@@ -303,14 +264,9 @@ export function BibliotecaDriveContent() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {keys.map((key) => {
         const cor = getMateriaColor(key)
-        const configurada = temAlgumaPastaConfigurada(key)
+        const configurada = pastaConfigurada(key)
         return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setNav({ materiaKey: key, tipo: null })}
-            className="text-left"
-          >
+          <button key={key} type="button" onClick={() => setMateriaKey(key)} className="text-left">
             <Card
               className={`group overflow-hidden border p-5 transition-all ${cor.borderSoft} bg-card ${
                 configurada ? `${cor.hoverBorder} ${cor.hoverGlow}` : "opacity-70"
@@ -336,7 +292,7 @@ export function BibliotecaDriveContent() {
 
   return (
     <div className="space-y-8">
-      {ANO_KEYS.map((ano) => {
+      {ANO_KEYS.map((ano: AnoKey) => {
         const cor = getAnoColor(ano)
         return (
           <section key={ano} className="space-y-3">
@@ -346,7 +302,7 @@ export function BibliotecaDriveContent() {
                 {t.cronograma.anoLabel[ano]}
               </h2>
             </div>
-            <FolderGrid keys={materiasPorAno(ano)} />
+            <FolderGrid keys={MATERIA_KEYS_BY_ANO[ano]} />
           </section>
         )
       })}

@@ -69,10 +69,17 @@ async function authedFetch(input: string, init: RequestInit = {}) {
   })
 }
 
+// Ciências Básicas usam pasta tipo "livro" (atlas/livro-texto de
+// referência); as demais matérias (agrupadas por ano) usam "resumo" (só
+// resumo de prova) -- ver a mesma regra em biblioteca-drive-content.tsx.
+function tipoDaMateria(materiaKey: string): "livro" | "resumo" {
+  return (DISCIPLINA_BASE_KEYS as readonly string[]).includes(materiaKey) ? "livro" : "resumo"
+}
+
 export function AdminBibliotecaContent() {
   const [pastas, setPastas] = useState<PastaConfig[]>([])
   const [loading, setLoading] = useState(true)
-  const [edits, setEdits] = useState<Record<string, { livro: string; resumo: string }>>({})
+  const [edits, setEdits] = useState<Record<string, string>>({})
   const [salvandoKey, setSalvandoKey] = useState<string | null>(null)
   const [salvoKey, setSalvoKey] = useState<string | null>(null)
 
@@ -88,47 +95,30 @@ export function AdminBibliotecaContent() {
     load()
   }, [])
 
-  const getPasta = (materiaKey: string, tipo: "livro" | "resumo") =>
-    pastas.find((p) => p.materia_key === materiaKey && p.tipo === tipo)
-
   const getEdit = (materiaKey: string) =>
-    edits[materiaKey] ?? {
-      livro: getPasta(materiaKey, "livro")?.drive_folder_id ?? "",
-      resumo: getPasta(materiaKey, "resumo")?.drive_folder_id ?? "",
-    }
+    edits[materiaKey] ??
+    pastas.find((p) => p.materia_key === materiaKey && p.tipo === tipoDaMateria(materiaKey))?.drive_folder_id ??
+    ""
 
-  const updateEdit = (materiaKey: string, campo: "livro" | "resumo", value: string) => {
-    setEdits((prev) => ({ ...prev, [materiaKey]: { ...getEdit(materiaKey), [campo]: value } }))
+  const updateEdit = (materiaKey: string, value: string) => {
+    setEdits((prev) => ({ ...prev, [materiaKey]: value }))
   }
 
   const handleSalvar = async (materiaKey: string) => {
-    const edit = getEdit(materiaKey)
+    const valor = getEdit(materiaKey).trim()
+    if (!valor) return
     setSalvandoKey(materiaKey)
     try {
-      const chamadas: Promise<Response>[] = []
-      if (edit.livro.trim()) {
-        chamadas.push(
-          authedFetch("/api/biblioteca/pastas", {
-            method: "POST",
-            body: JSON.stringify({ materia_key: materiaKey, tipo: "livro", drive_folder_id: edit.livro.trim() }),
-          })
-        )
-      }
-      if (edit.resumo.trim()) {
-        chamadas.push(
-          authedFetch("/api/biblioteca/pastas", {
-            method: "POST",
-            body: JSON.stringify({ materia_key: materiaKey, tipo: "resumo", drive_folder_id: edit.resumo.trim() }),
-          })
-        )
-      }
-      const respostas = await Promise.all(chamadas)
-      if (respostas.some((r) => !r.ok)) throw new Error("erro")
+      const res = await authedFetch("/api/biblioteca/pastas", {
+        method: "POST",
+        body: JSON.stringify({ materia_key: materiaKey, tipo: tipoDaMateria(materiaKey), drive_folder_id: valor }),
+      })
+      if (!res.ok) throw new Error("erro")
       await load()
       setSalvoKey(materiaKey)
       setTimeout(() => setSalvoKey((k) => (k === materiaKey ? null : k)), 2000)
     } catch {
-      alert("Erro ao salvar as pastas dessa matéria. Confira os IDs e tente novamente.")
+      alert("Erro ao salvar a pasta dessa matéria. Confira o ID e tente novamente.")
     } finally {
       setSalvandoKey(null)
     }
@@ -157,11 +147,13 @@ export function AdminBibliotecaContent() {
       <div>
         <h2 className="text-lg font-semibold text-foreground">Biblioteca — Pastas do Google Drive</h2>
         <p className="text-sm text-muted-foreground">
-          Cole aqui o ID da pasta do Drive de cada matéria (Libros e Resúmenes). A pasta precisa estar
-          compartilhada como &quot;Qualquer pessoa com o link&quot;. O ID é o trecho da URL depois de
+          Cole aqui o ID da pasta do Drive de cada matéria. A pasta precisa estar compartilhada como
+          &quot;Qualquer pessoa com o link&quot;. O ID é o trecho da URL depois de
           <code className="mx-1 rounded bg-muted px-1 py-0.5 text-xs">/folders/</code>
           — ex.: em <code className="text-xs">drive.google.com/drive/folders/ABC123</code>, o ID é{" "}
-          <code className="text-xs">ABC123</code>.
+          <code className="text-xs">ABC123</code>. Ciências Básicas usam pasta de <strong>Libros</strong>{" "}
+          (atlas/livro-texto); as demais matérias usam pasta de <strong>Resúmenes</strong> — cada matéria tem
+          uma pasta só, sem subdivisão.
         </p>
       </div>
 
@@ -173,25 +165,17 @@ export function AdminBibliotecaContent() {
           <div className="space-y-2">
             {materias.map((materiaKey) => {
               const edit = getEdit(materiaKey)
+              const label = tipoDaMateria(materiaKey) === "livro" ? "ID pasta Libros" : "ID pasta Resúmenes"
               return (
                 <Card key={materiaKey} className="flex flex-wrap items-end gap-3 border border-border bg-card p-3">
                   <div className="min-w-[180px] flex-1 basis-full font-medium text-foreground sm:basis-auto">
                     {MATERIA_LABEL_PT[materiaKey] ?? materiaKey}
                   </div>
-                  <div className="min-w-[200px] flex-1 space-y-1">
-                    <Label className="text-xs text-muted-foreground">ID pasta Libros</Label>
+                  <div className="min-w-[260px] flex-1 space-y-1">
+                    <Label className="text-xs text-muted-foreground">{label}</Label>
                     <Input
-                      value={edit.livro}
-                      onChange={(e) => updateEdit(materiaKey, "livro", e.target.value)}
-                      placeholder="ID da pasta no Drive"
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                  <div className="min-w-[200px] flex-1 space-y-1">
-                    <Label className="text-xs text-muted-foreground">ID pasta Resúmenes</Label>
-                    <Input
-                      value={edit.resumo}
-                      onChange={(e) => updateEdit(materiaKey, "resumo", e.target.value)}
+                      value={edit}
+                      onChange={(e) => updateEdit(materiaKey, e.target.value)}
                       placeholder="ID da pasta no Drive"
                       className="h-8 text-sm"
                     />
