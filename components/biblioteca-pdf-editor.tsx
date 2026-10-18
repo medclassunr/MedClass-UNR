@@ -135,12 +135,20 @@ function comprimirImagem(file: File): Promise<string> {
 }
 
 interface BibliotecaPdfEditorProps {
-  driveFileId: string
+  // Chave usada em biblioteca_anotacoes.drive_file_id -- prefixada
+  // ("proprio:<id>") pro upload próprio do aluno pra nunca colidir com um
+  // ID real do Drive.
+  chaveAnotacao: string
   nome: string
   onClose: () => void
+  // Drive: busca via proxy autenticado (driveFileId). Upload próprio: usa
+  // uma signed URL do Storage direto (já é a própria autenticação, e já
+  // suporta Range nativamente) -- só um dos dois é informado.
+  driveFileId?: string
+  urlPdf?: string
 }
 
-export function BibliotecaPdfEditor({ driveFileId, nome, onClose }: BibliotecaPdfEditorProps) {
+export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId, urlPdf }: BibliotecaPdfEditorProps) {
   const { t } = useLanguage()
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasPdfRef = useRef<HTMLCanvasElement>(null)
@@ -189,17 +197,21 @@ export function BibliotecaPdfEditor({ driveFileId, nome, onClose }: BibliotecaPd
       setCarregando(true)
       setErro(null)
       try {
-        const { data: sessao } = await supabase.auth.getSession()
-        const token = sessao.session?.access_token
-        if (!token) throw new Error("sem sessão")
-
         const pdfjsLib = await import("pdfjs-dist")
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
 
-        const loadingTask = pdfjsLib.getDocument({
-          url: `/api/biblioteca/arquivo/${driveFileId}?modo=inline`,
-          httpHeaders: { Authorization: `Bearer ${token}` },
-        })
+        let loadingTask
+        if (urlPdf) {
+          loadingTask = pdfjsLib.getDocument({ url: urlPdf })
+        } else {
+          const { data: sessao } = await supabase.auth.getSession()
+          const token = sessao.session?.access_token
+          if (!token) throw new Error("sem sessão")
+          loadingTask = pdfjsLib.getDocument({
+            url: `/api/biblioteca/arquivo/${driveFileId}?modo=inline`,
+            httpHeaders: { Authorization: `Bearer ${token}` },
+          })
+        }
         const pdf = await loadingTask.promise
         if (cancelado) return
         pdfDocRef.current = pdf
@@ -208,7 +220,7 @@ export function BibliotecaPdfEditor({ driveFileId, nome, onClose }: BibliotecaPd
         const { data: existente } = await supabase
           .from("biblioteca_anotacoes")
           .select("paginas")
-          .eq("drive_file_id", driveFileId)
+          .eq("drive_file_id", chaveAnotacao)
           .maybeSingle()
         if (cancelado) return
 
@@ -230,7 +242,7 @@ export function BibliotecaPdfEditor({ driveFileId, nome, onClose }: BibliotecaPd
       cancelado = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driveFileId])
+  }, [chaveAnotacao, driveFileId, urlPdf])
 
   // ---------- Renderizar página atual (canvas PDF + text layer) ----------
 
@@ -589,7 +601,7 @@ export function BibliotecaPdfEditor({ driveFileId, nome, onClose }: BibliotecaPd
       const { error } = await supabase.from("biblioteca_anotacoes").upsert(
         {
           user_id: userId,
-          drive_file_id: driveFileId,
+          drive_file_id: chaveAnotacao,
           drive_file_nome: nome,
           paginas,
           atualizado_em: new Date().toISOString(),

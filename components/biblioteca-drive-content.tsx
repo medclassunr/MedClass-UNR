@@ -23,6 +23,7 @@ import { useLanguage } from "@/lib/i18n"
 import { ANO_KEYS, DISCIPLINA_BASE_KEYS, MATERIA_KEYS_BY_ANO, type AnoKey } from "@/lib/unr-curriculum"
 import { getAnoColor, getMateriaColor } from "@/lib/materia-colors"
 import { BibliotecaPdfEditor } from "@/components/biblioteca-pdf-editor"
+import { BibliotecaMeusArquivos } from "@/components/biblioteca-meus-arquivos"
 
 interface PastaConfig {
   id: string
@@ -291,8 +292,11 @@ export function BibliotecaDriveContent() {
           </Card>
         )}
 
+        <BibliotecaMeusArquivos materiaKey={materiaKey} />
+
         {visualizando && visualizando.mimeType === "application/pdf" && (
           <BibliotecaPdfEditor
+            chaveAnotacao={visualizando.id}
             driveFileId={visualizando.id}
             nome={visualizando.name}
             onClose={() => setVisualizando(null)}
