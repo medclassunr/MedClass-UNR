@@ -70,7 +70,7 @@ export function SimuladosContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { abrirAjudaPagina } = useTutorial()
+  const { abrirAjudaPagina, tutorialAberto } = useTutorial()
   const [simulados, setSimulados] = useState<Simulado[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -339,7 +339,15 @@ export function SimuladosContent() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent
+              className="max-w-md"
+              // Os botões do tutorial (Próximo/Pular/Entendi) ficam num
+              // overlay próprio, fora deste DialogContent -- sem isso, o
+              // Radix interpreta o clique neles como "fora do diálogo" e
+              // fecha o diálogo sozinho no meio do passo a passo.
+              onPointerDownOutside={(e) => { if (tutorialAberto) e.preventDefault() }}
+              onInteractOutside={(e) => { if (tutorialAberto) e.preventDefault() }}
+            >
               <DialogHeader>
                 <DialogTitle>{t.treinamentos.criarNovoSimulado}</DialogTitle>
               </DialogHeader>

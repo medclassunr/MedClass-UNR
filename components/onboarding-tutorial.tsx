@@ -29,7 +29,7 @@
 // destacar algo na própria página que já está aberta).
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { GraduationCap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage, translations } from "@/lib/i18n"
@@ -143,6 +143,12 @@ interface SpotRect {
 interface TutorialContextValue {
   abrirTutorialCompleto: () => void
   abrirAjudaPagina: (passos: TutorialStep[]) => void
+  /** true enquanto o overlay do tutorial está na tela -- usado por quem
+   *  tem um Dialog próprio (ex.: o de criar simulado) pra não deixar o
+   *  Radix fechar o diálogo sozinho quando o aluno clica nos botões do
+   *  tutorial (que ficam fora do DialogContent, então o Radix enxerga
+   *  como "clique fora" e fecharia por padrão). */
+  tutorialAberto: boolean
 }
 
 const TutorialContext = createContext<TutorialContextValue | null>(null)
@@ -156,6 +162,7 @@ export function useTutorial() {
 export function TutorialProvider({ children }: { children: ReactNode }) {
   const { t } = useLanguage()
   const router = useRouter()
+  const pathname = usePathname()
   const [passos, setPassos] = useState<TutorialStep[]>(TOUR_COMPLETO)
   const [aberto, setAberto] = useState(false)
   const [passoAtual, setPassoAtual] = useState(0)
@@ -174,15 +181,30 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setAvatarIdx((anterior) => (fixa !== undefined ? fixa : sortearPose(anterior)))
   }, [aberto, passoAtual, passos])
 
-  // Tour completo sozinho só na 1ª vez (profiles.tutorial_dashboard_visto).
-  // Pula essa checagem se a URL já tem ?tutorialCriar=true -- veio de
+  // Tour completo sozinho só na 1ª vez (profiles.tutorial_dashboard_visto),
+  // OU se a URL tem ?abrirTutorial=true -- handoff do botão "Rever
+  // tutorial"/abrirTutorialCompleto() quando clicado fora de /dashboard
+  // (ver abrirTutorialCompleto abaixo: ele navega pra /dashboard primeiro,
+  // já que os seletores do tour só existem lá; essa instância nova do
+  // provider, montada na página nova, é quem efetivamente abre o tour).
+  //
+  // Pula a checagem de "visto" se a URL tem ?tutorialCriar=true -- veio de
   // aoAvancarRoute (ver avancar()), que marca visto e navega pra cá antes
   // da escrita no Supabase confirmar; sem esse bypass síncrono (direto na
   // URL, não depende de rede) essa página ainda poderia abrir o tour
   // completo do zero por cima do passo a passo que simulados-content.tsx
   // está prestes a disparar.
   useEffect(() => {
-    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("tutorialCriar")) return
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    if (params.has("abrirTutorial")) {
+      setPassos(TOUR_COMPLETO)
+      setPassoAtual(0)
+      setAberto(true)
+      router.replace(pathname)
+      return
+    }
+    if (params.has("tutorialCriar")) return
     getTutorialVisto().then((visto) => {
       if (!visto) {
         setPassos(TOUR_COMPLETO)
@@ -240,10 +262,18 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   }, [aberto, passoAtual, passos, medir])
 
   const abrirTutorialCompleto = useCallback(() => {
+    // Os seletores do tour completo (daily-tip, quick-access-grid etc.)
+    // só existem na home do dashboard -- clicar em "Rever tutorial" de
+    // qualquer outra página precisa navegar pra lá primeiro (?abrirTutorial=true
+    // é pego pelo efeito de montagem da nova instância do provider, ver acima).
+    if (pathname !== "/dashboard") {
+      router.push("/dashboard?abrirTutorial=true")
+      return
+    }
     setPassos(TOUR_COMPLETO)
     setPassoAtual(0)
     setAberto(true)
-  }, [])
+  }, [pathname, router])
 
   const abrirAjudaPagina = useCallback((novosPassos: TutorialStep[]) => {
     setPassos(novosPassos)
@@ -287,7 +317,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     .replace("{total}", String(passos.length))
 
   return (
-    <TutorialContext.Provider value={{ abrirTutorialCompleto, abrirAjudaPagina }}>
+    <TutorialContext.Provider value={{ abrirTutorialCompleto, abrirAjudaPagina, tutorialAberto: aberto }}>
       {children}
 
       {aberto && passo && (
