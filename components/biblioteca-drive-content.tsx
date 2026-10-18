@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   ArrowLeft,
   BookOpen,
@@ -24,6 +25,7 @@ import { ANO_KEYS, DISCIPLINA_BASE_KEYS, MATERIA_KEYS_BY_ANO, type AnoKey } from
 import { getAnoColor, getMateriaColor } from "@/lib/materia-colors"
 import { BibliotecaPdfEditor } from "@/components/biblioteca-pdf-editor"
 import { BibliotecaMeusArquivos } from "@/components/biblioteca-meus-arquivos"
+import { useTutorial, TOUR_COMPLETO, PASSOS_FERRAMENTAS_BIBLIOTECA } from "@/components/onboarding-tutorial"
 
 interface PastaConfig {
   id: string
@@ -88,6 +90,11 @@ function tipoDaMateria(materiaKey: string): "livro" | "resumo" {
 
 export function BibliotecaDriveContent() {
   const { t } = useLanguage()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const { abrirAjudaPagina } = useTutorial()
+  const tutorialDisparado = useRef(false)
   const [pastas, setPastas] = useState<PastaConfig[]>([])
   const [loadingPastas, setLoadingPastas] = useState(true)
   const [erroPastas, setErroPastas] = useState(false)
@@ -118,6 +125,14 @@ export function BibliotecaDriveContent() {
     return pastas.find((p) => p.materia_key === materiaKey && p.tipo === tipoAtual) ?? null
   }, [pastas, materiaKey, tipoAtual])
 
+  // prontoPara: materia_key cujos arquivos já terminaram de carregar (sucesso
+  // ou erro) -- diferente de "!loadingArquivos", que também é true ANTES do
+  // fetch começar (mesmo commit em que materiaKey muda, por causa de como
+  // efeitos em React só veem o estado uns dos outros na renderização
+  // seguinte) -- o efeito do tutorial abaixo depende dessa distinção pra não
+  // disparar antes dos arquivos chegarem de verdade.
+  const [prontoPara, setProntoPara] = useState<string | null>(null)
+
   useEffect(() => {
     if (!pastaConfigAtual) {
       setArquivos([])
@@ -125,6 +140,7 @@ export function BibliotecaDriveContent() {
     }
     setLoadingArquivos(true)
     setErroArquivos(false)
+    setProntoPara(null)
     authedFetch(`/api/biblioteca/arquivos?folderId=${encodeURIComponent(pastaConfigAtual.drive_folder_id)}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("erro")
@@ -132,8 +148,47 @@ export function BibliotecaDriveContent() {
         setArquivos(json.arquivos ?? [])
       })
       .catch(() => setErroArquivos(true))
-      .finally(() => setLoadingArquivos(false))
+      .finally(() => {
+        setLoadingArquivos(false)
+        setProntoPara(pastaConfigAtual.materia_key)
+      })
   }, [pastaConfigAtual])
+
+  // Vindo do passo "Materiais" do tour completo
+  // (?tutorialBiblioteca=true) -- entra na primeira matéria que já tem
+  // pasta configurada (1º passo abaixo), e quando os arquivos dela
+  // carregarem, abre o primeiro arquivo e dispara o passo a passo de
+  // cada ferramenta do editor (2º efeito). Se nada estiver configurado
+  // ainda, não tem como apontar pra um editor real -- nesse caso só
+  // continua o tour completo sem o mini-tour da biblioteca.
+  useEffect(() => {
+    if (tutorialDisparado.current) return
+    if (searchParams.get("tutorialBiblioteca") !== "true") return
+    if (loadingPastas) return
+    if (pastas.length === 0) {
+      tutorialDisparado.current = true
+      const indice = TOUR_COMPLETO.findIndex((p) => p.tituloKey === "desempenhoTitulo")
+      router.replace(pathname)
+      router.push(`/dashboard?continuarTutorial=${indice >= 0 ? indice : 0}`)
+      return
+    }
+    setMateriaKey(pastas[0].materia_key)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingPastas, pastas, searchParams])
+
+  useEffect(() => {
+    if (tutorialDisparado.current) return
+    if (searchParams.get("tutorialBiblioteca") !== "true") return
+    if (!materiaKey || prontoPara !== materiaKey) return
+    tutorialDisparado.current = true
+    const indiceContinuar = TOUR_COMPLETO.findIndex((p) => p.tituloKey === "desempenhoTitulo")
+    if (arquivos.length > 0) setVisualizando(arquivos[0])
+    abrirAjudaPagina(PASSOS_FERRAMENTAS_BIBLIOTECA, {
+      aoTerminarRoute: `/dashboard?continuarTutorial=${indiceContinuar >= 0 ? indiceContinuar : 0}`,
+    })
+    router.replace(pathname)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [materiaKey, prontoPara, arquivos, searchParams])
 
   const materiaLabel = (key: string) =>
     t.cronograma.materiaLabel[key] ?? t.cronograma.disciplinaBaseLabel[key] ?? key

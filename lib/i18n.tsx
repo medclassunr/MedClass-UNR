@@ -1251,7 +1251,35 @@ const pt = {
       "Tudo que acabamos de ver (Simulados, Desafios Clínicos, Hospital Simulação, Cronograma, Actividades en la UNR, Calendario) também está aqui, no menu à esquerda — útil pra navegar direto sem precisar voltar sempre pra home.",
     materiaisTitulo: "Materiais",
     materiaisTexto:
-      "No menu lateral você encontra \"Materiais\": videoaulas (abertas pra todos), resumos e flashcards organizados por matéria. No plano gratuito o acesso é limitado — os planos pagos liberam tudo.",
+      "No menu lateral você encontra \"Materiais\": videoaulas (abertas pra todos), Libros y Resúmenes e flashcards organizados por matéria. No plano gratuito o acesso é limitado — os planos pagos liberam tudo. Clique em \"Ir pra Materiais\" abaixo pra te mostrar as ferramentas de marcação de resumo na tela de verdade.",
+    irParaMateriais: "Ir pra Materiais",
+    bibliotecaIntroTitulo: "Marcando um resumo",
+    bibliotecaIntroTexto:
+      "Em \"Libros y Resúmenes\", clique no ícone de olho (visualizar) de qualquer arquivo pra abrir esse editor. Vamos passar por cada ferramenta da barra de cima.",
+    bibliotecaPonteiroTitulo: "Selecionar",
+    bibliotecaPonteiroTexto:
+      "Com essa ferramenta ativa você pode clicar e arrastar as caixas de texto e imagens que você mesmo inseriu, sem desenhar nada na tela.",
+    bibliotecaMarcaTextoTitulo: "Marca-texto",
+    bibliotecaMarcaTextoTexto:
+      "Arraste sobre o texto do PDF pra grifar — ele encaixa automaticamente nas linhas reais do documento. Clique num trecho já grifado pra remover o grifo.",
+    bibliotecaCanetaTitulo: "Caneta",
+    bibliotecaCanetaTexto:
+      "Desenha à mão livre por cima do PDF — útil pra circular algo ou fazer uma seta. Escolha a cor nas bolinhas que aparecem ao lado quando essa ferramenta está ativa.",
+    bibliotecaTextoTitulo: "Caixa de texto",
+    bibliotecaTextoTexto:
+      "Insere uma caixa de texto editável na página. Arraste pela barrinha no topo da caixa pra mover, e pelo cantinho inferior direito pra redimensionar.",
+    bibliotecaImagemTitulo: "Inserir imagem",
+    bibliotecaImagemTexto:
+      "Escolhe uma imagem do seu dispositivo e insere na página — também pode mover e redimensionar, igual a caixa de texto.",
+    bibliotecaBorrachaTitulo: "Borracha",
+    bibliotecaBorrachaTexto:
+      "Com essa ferramenta ativa, clique em qualquer marcação (grifo, traço de caneta, texto ou imagem) pra apagar só ela.",
+    bibliotecaDesfazerTitulo: "Desfazer e refazer",
+    bibliotecaDesfazerTexto:
+      "Errou alguma marcação? Esses dois botões desfazem ou refazem a última ação, uma por vez.",
+    bibliotecaSalvarTitulo: "Salvar",
+    bibliotecaSalvarTexto:
+      "Suas marcações não salvam automaticamente — clique aqui quando terminar. Se tentar fechar com algo não salvo, ele avisa e te dá a opção de salvar antes.",
     desempenhoTitulo: "Seu Desempenho",
     desempenhoTexto:
       "Aqui você vê sua taxa de acerto, o total de questões respondidas com a tendência recente, e seus pontos acumulados. Toque em \"Ver estatísticas\" pro detalhe completo por matéria.",
@@ -2545,7 +2573,35 @@ const es: typeof pt = {
       "Todo lo que acabamos de ver (Simulacros, Desafíos Clínicos, Hospital de Simulación, Cronograma, Actividades en la UNR, Calendario) también lo encontrás acá, en el menú de la izquierda — útil para navegar directo sin volver siempre a la home.",
     materiaisTitulo: "Materiales",
     materiaisTexto:
-      "En el menú lateral encontrás \"Materiales\": videoclases (abiertas para todos), resúmenes y flashcards organizados por materia. En el plan gratuito tenés acceso limitado — los planes pagos desbloquean todo.",
+      "En el menú lateral encontrás \"Materiales\": videoclases (abiertas para todos), Libros y Resúmenes y flashcards organizados por materia. En el plan gratuito tenés acceso limitado — los planes pagos desbloquean todo. Hacé clic en \"Ir a Materiales\" abajo para mostrarte las herramientas de marcado de resumen en la pantalla real.",
+    irParaMateriais: "Ir a Materiales",
+    bibliotecaIntroTitulo: "Marcando un resumen",
+    bibliotecaIntroTexto:
+      "En \"Libros y Resúmenes\", hacé clic en el ícono de ojo (visualizar) de cualquier archivo para abrir este editor. Vamos a pasar por cada herramienta de la barra de arriba.",
+    bibliotecaPonteiroTitulo: "Seleccionar",
+    bibliotecaPonteiroTexto:
+      "Con esta herramienta activa podés hacer clic y arrastrar los cuadros de texto e imágenes que vos mismo insertaste, sin dibujar nada en la pantalla.",
+    bibliotecaMarcaTextoTitulo: "Resaltador",
+    bibliotecaMarcaTextoTexto:
+      "Arrastrá sobre el texto del PDF para resaltar — encaja automáticamente en las líneas reales del documento. Hacé clic en un trecho ya resaltado para quitarlo.",
+    bibliotecaCanetaTitulo: "Lapicera",
+    bibliotecaCanetaTexto:
+      "Dibuja a mano libre sobre el PDF — útil para marcar algo o hacer una flecha. Elegí el color en las bolitas que aparecen al lado cuando esta herramienta está activa.",
+    bibliotecaTextoTitulo: "Cuadro de texto",
+    bibliotecaTextoTexto:
+      "Inserta un cuadro de texto editable en la página. Arrastrá desde la barrita de arriba del cuadro para moverlo, y desde la esquina inferior derecha para cambiar el tamaño.",
+    bibliotecaImagemTitulo: "Insertar imagen",
+    bibliotecaImagemTexto:
+      "Elegí una imagen de tu dispositivo e insertala en la página — también se puede mover y redimensionar, igual que el cuadro de texto.",
+    bibliotecaBorrachaTitulo: "Borrador",
+    bibliotecaBorrachaTexto:
+      "Con esta herramienta activa, hacé clic en cualquier marca (resaltado, trazo de lapicera, texto o imagen) para borrar solo esa.",
+    bibliotecaDesfazerTitulo: "Deshacer y rehacer",
+    bibliotecaDesfazerTexto:
+      "¿Te equivocaste en algo? Estos dos botones deshacen o rehacen la última acción, una por vez.",
+    bibliotecaSalvarTitulo: "Guardar",
+    bibliotecaSalvarTexto:
+      "Tus marcas no se guardan automáticamente — hacé clic acá cuando termines. Si intentás cerrar con algo sin guardar, te avisa y te da la opción de guardar antes.",
     desempenhoTitulo: "Tu Desempeño",
     desempenhoTexto:
       "Acá ves tu porcentaje de aciertos, el total de preguntas respondidas con la tendencia reciente, y tus puntos acumulados. Tocá \"Ver estadísticas\" para el detalle completo por materia.",

@@ -65,6 +65,11 @@ export interface TutorialStep {
    *  diálogo de criar simulado também se desloca pra direita -- ver
    *  simulados-content.tsx). */
   cardNaEsquerda?: boolean
+  /** Mostra uma setinha piscando apontando pro elemento destacado (além do
+   *  spotlight normal) -- usado nos passos de PASSOS_FERRAMENTAS_BIBLIOTECA,
+   *  onde o spotlight sozinho em ícones pequenos de uma barra de ferramentas
+   *  não deixa claro qual item exatamente está sendo explicado. */
+  seta?: boolean
 }
 
 const WHATSAPP_SUPORTE_URL = "https://wa.me/543417214945"
@@ -93,7 +98,13 @@ export const TOUR_COMPLETO: TutorialStep[] = [
   { tituloKey: "calendarioTitulo", textoKey: "calendarioTexto", selector: '[data-tutorial="tile-calendario"]' },
   { tituloKey: "mesaOralTitulo", textoKey: "mesaOralTexto", selector: '[data-tutorial="tile-mesa-oral"]' },
   { tituloKey: "menuLateralTitulo", textoKey: "menuLateralTexto", selector: '[data-tutorial="sidebar-menu"]' },
-  { tituloKey: "materiaisTitulo", textoKey: "materiaisTexto", selector: null },
+  {
+    tituloKey: "materiaisTitulo",
+    textoKey: "materiaisTexto",
+    selector: null,
+    aoAvancarRoute: "/dashboard/materiais?tab=resumos&tutorialBiblioteca=true",
+    labelAvancarKey: "irParaMateriais",
+  },
   { tituloKey: "desempenhoTitulo", textoKey: "desempenhoTexto", selector: '[data-tutorial="desempenho-widget"]' },
   { tituloKey: "rankingTitulo", textoKey: "rankingTexto", selector: '[data-tutorial="ranking-widget"]' },
   { tituloKey: "comunidadeTitulo", textoKey: "comunidadeTexto", selector: '[data-tutorial="comunidade-banner"]' },
@@ -117,6 +128,28 @@ export const PASSOS_CRIAR_SIMULADO: TutorialStep[] = [
   { tituloKey: "criarSimuladoQuantidadeTitulo", textoKey: "criarSimuladoQuantidadeTexto", selector: '[data-tutorial="simulado-form-quantidade"]', cardNaEsquerda: true },
   { tituloKey: "criarSimuladoTempoTitulo", textoKey: "criarSimuladoTempoTexto", selector: '[data-tutorial="simulado-form-tempo"]', cardNaEsquerda: true },
   { tituloKey: "criarSimuladoBotaoTitulo", textoKey: "criarSimuladoBotaoTexto", selector: '[data-tutorial="simulado-form-criar"]', cardNaEsquerda: true },
+]
+
+// Passo a passo de cada ferramenta do editor de anotação de PDF (Libros y
+// Resúmenes) -- disparado pelo passo "Materiais" do tour completo
+// (aoAvancarRoute leva pra /dashboard/materiais?tab=resumos&tutorialBiblioteca=true).
+// components/biblioteca-drive-content.tsx detecta esse parâmetro, abre o
+// primeiro arquivo configurado de verdade (ou mostra um aviso se nenhuma
+// pasta tiver conteúdo ainda) e dispara esses passos. Os seletores batem
+// com os data-tutorial="biblioteca-tool-*" em components/biblioteca-pdf-editor.tsx.
+// Todos têm cardNaEsquerda (o editor ocupa a tela quase toda) e seta (os
+// ícones da barra de ferramentas são pequenos, o spotlight sozinho não
+// deixa claro qual exatamente está sendo explicado).
+export const PASSOS_FERRAMENTAS_BIBLIOTECA: TutorialStep[] = [
+  { tituloKey: "bibliotecaIntroTitulo", textoKey: "bibliotecaIntroTexto", selector: null, cardNaEsquerda: true },
+  { tituloKey: "bibliotecaPonteiroTitulo", textoKey: "bibliotecaPonteiroTexto", selector: '[data-tutorial="biblioteca-tool-ponteiro"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaMarcaTextoTitulo", textoKey: "bibliotecaMarcaTextoTexto", selector: '[data-tutorial="biblioteca-tool-marca-texto"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaCanetaTitulo", textoKey: "bibliotecaCanetaTexto", selector: '[data-tutorial="biblioteca-tool-caneta"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaTextoTitulo", textoKey: "bibliotecaTextoTexto", selector: '[data-tutorial="biblioteca-tool-texto"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaImagemTitulo", textoKey: "bibliotecaImagemTexto", selector: '[data-tutorial="biblioteca-tool-imagem"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaBorrachaTitulo", textoKey: "bibliotecaBorrachaTexto", selector: '[data-tutorial="biblioteca-tool-borracha"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaDesfazerTitulo", textoKey: "bibliotecaDesfazerTexto", selector: '[data-tutorial="biblioteca-tool-desfazer"]', cardNaEsquerda: true, seta: true },
+  { tituloKey: "bibliotecaSalvarTitulo", textoKey: "bibliotecaSalvarTexto", selector: '[data-tutorial="biblioteca-tool-salvar"]', cardNaEsquerda: true, seta: true },
 ]
 
 // PNG, não WebP -- o WebP com canal alpha tem bugs de renderização
@@ -405,6 +438,22 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
                   boxShadow: "0 0 0 2px var(--primary), 0 0 24px color-mix(in srgb, var(--primary) 45%, transparent)",
                 }}
               />
+              {passo.seta && (
+                // Setinha piscando -- aponta pra cima do elemento (de baixo
+                // pra cima) normalmente, mas se não houver espaço acima (ex.:
+                // barra de ferramentas colada no topo do editor), inverte e
+                // aponta de cima pra baixo.
+                <div
+                  className="pointer-events-none fixed animate-bounce text-3xl leading-none text-primary"
+                  style={
+                    rect.top - 8 > 48
+                      ? { top: rect.top - 44, left: rect.left + rect.width / 2 - 12 }
+                      : { top: rect.top + rect.height + 8, left: rect.left + rect.width / 2 - 12 }
+                  }
+                >
+                  {rect.top - 8 > 48 ? "▼" : "▲"}
+                </div>
+              )}
             </>
           ) : (
             <div className="pointer-events-none fixed inset-0 bg-black/75" />

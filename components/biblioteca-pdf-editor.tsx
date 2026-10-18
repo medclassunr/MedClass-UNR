@@ -652,23 +652,23 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
 
         {/* Barra de ferramentas */}
         <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/30 px-2 py-1.5">
-          <FerramentaBtn ativo={ferramenta === "nenhuma"} onClick={() => setFerramenta("nenhuma")} title={t.biblioteca.ferramentaPonteiro}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-ponteiro" ativo={ferramenta === "nenhuma"} onClick={() => setFerramenta("nenhuma")} title={t.biblioteca.ferramentaPonteiro}>
             <MousePointer2 className="h-4 w-4" />
           </FerramentaBtn>
-          <FerramentaBtn ativo={ferramenta === "marca-texto"} onClick={() => setFerramenta("marca-texto")} title={t.biblioteca.ferramentaMarcaTexto}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-marca-texto" ativo={ferramenta === "marca-texto"} onClick={() => setFerramenta("marca-texto")} title={t.biblioteca.ferramentaMarcaTexto}>
             <Highlighter className="h-4 w-4" />
           </FerramentaBtn>
-          <FerramentaBtn ativo={ferramenta === "caneta"} onClick={() => setFerramenta("caneta")} title={t.biblioteca.ferramentaCaneta}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-caneta" ativo={ferramenta === "caneta"} onClick={() => setFerramenta("caneta")} title={t.biblioteca.ferramentaCaneta}>
             <Pen className="h-4 w-4" />
           </FerramentaBtn>
-          <FerramentaBtn ativo={false} onClick={inserirTexto} title={t.biblioteca.ferramentaTexto}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-texto" ativo={false} onClick={inserirTexto} title={t.biblioteca.ferramentaTexto}>
             <Type className="h-4 w-4" />
           </FerramentaBtn>
-          <FerramentaBtn ativo={false} onClick={() => inputImagemRef.current?.click()} title={t.biblioteca.ferramentaImagem}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-imagem" ativo={false} onClick={() => inputImagemRef.current?.click()} title={t.biblioteca.ferramentaImagem}>
             <ImagePlus className="h-4 w-4" />
           </FerramentaBtn>
           <input ref={inputImagemRef} type="file" accept="image/*" hidden onChange={handleArquivoImagem} />
-          <FerramentaBtn ativo={ferramenta === "borracha"} onClick={() => setFerramenta("borracha")} title={t.biblioteca.ferramentaBorracha}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-borracha" ativo={ferramenta === "borracha"} onClick={() => setFerramenta("borracha")} title={t.biblioteca.ferramentaBorracha}>
             <Eraser className="h-4 w-4" />
           </FerramentaBtn>
 
@@ -688,7 +688,7 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
 
           <div className="mx-1 h-5 w-px bg-border" />
 
-          <FerramentaBtn ativo={false} onClick={desfazer} disabled={!podeDesfazer} title={t.biblioteca.desfazer}>
+          <FerramentaBtn dataTutorial="biblioteca-tool-desfazer" ativo={false} onClick={desfazer} disabled={!podeDesfazer} title={t.biblioteca.desfazer}>
             <Undo2 className="h-4 w-4" />
           </FerramentaBtn>
           <FerramentaBtn ativo={false} onClick={refazer} disabled={!podeRefazer} title={t.biblioteca.refazer}>
@@ -710,6 +710,7 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
               type="button"
               onClick={salvar}
               disabled={salvando || !alteracoesNaoSalvas}
+              data-tutorial="biblioteca-tool-salvar"
               className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {salvando ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
@@ -887,12 +888,14 @@ function FerramentaBtn({
   title,
   disabled,
   children,
+  dataTutorial,
 }: {
   ativo: boolean
   onClick: () => void
   title: string
   disabled?: boolean
   children: React.ReactNode
+  dataTutorial?: string
 }) {
   return (
     <button
@@ -900,6 +903,7 @@ function FerramentaBtn({
       onClick={onClick}
       disabled={disabled}
       title={title}
+      data-tutorial={dataTutorial}
       className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors disabled:opacity-40 ${
         ativo ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
       }`}
