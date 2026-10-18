@@ -147,9 +147,18 @@ interface SpotRect {
   height: number
 }
 
+interface TutorialStepOpcoes {
+  /** Pra onde navegar quando esse mini-tour terminar (passo final OU
+   *  "Pular") -- usado pra "devolver" o aluno pro tour completo de onde
+   *  ele saiu (ex.: depois do passo a passo de criar simulado, continuar
+   *  do passo "Como resolver um simulado" em diante). Ver
+   *  ?continuarTutorial=<índice> no efeito de montagem abaixo. */
+  aoTerminarRoute?: string
+}
+
 interface TutorialContextValue {
   abrirTutorialCompleto: () => void
-  abrirAjudaPagina: (passos: TutorialStep[]) => void
+  abrirAjudaPagina: (passos: TutorialStep[], opcoes?: TutorialStepOpcoes) => void
   /** true enquanto o overlay do tutorial está na tela -- usado por quem
    *  tem um Dialog próprio (ex.: o de criar simulado) pra não deixar o
    *  Radix fechar o diálogo sozinho quando o aluno clica nos botões do
@@ -176,6 +185,10 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const [rect, setRect] = useState<SpotRect | null>(null)
   const [avatarIdx, setAvatarIdx] = useState(0)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Rota pra voltar depois que o mini-tour atual terminar (ver
+  // abrirAjudaPagina/encerrar abaixo) -- ref, não state, porque só é lida
+  // dentro de encerrar(), não precisa re-renderizar nada quando muda.
+  const aoTerminarRouteRef = useRef<string | null>(null)
 
   // Sorteia uma pose nova (nunca igual à anterior) toda vez que um passo
   // novo é mostrado -- pedido explícito: aleatório, não sequencial. Exceto
@@ -195,6 +208,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   // já que os seletores do tour só existem lá; essa instância nova do
   // provider, montada na página nova, é quem efetivamente abre o tour).
   //
+  // ?continuarTutorial=<índice> é o mesmo handoff, mas retomando NUM
+  // PASSO ESPECÍFICO em vez do começo -- usado ao voltar de um mini-tour
+  // em outra página (ex.: depois de "Como criar um simulado", continua
+  // do passo "Como resolver um simulado" em diante, ver aoTerminarRoute
+  // em simulados-content.tsx).
+  //
   // Pula a checagem de "visto" se a URL tem ?tutorialCriar=true -- veio de
   // aoAvancarRoute (ver avancar()), que marca visto e navega pra cá antes
   // da escrita no Supabase confirmar; sem esse bypass síncrono (direto na
@@ -207,6 +226,15 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     if (params.has("abrirTutorial")) {
       setPassos(TOUR_COMPLETO)
       setPassoAtual(0)
+      setAberto(true)
+      router.replace(pathname)
+      return
+    }
+    const continuarEm = params.get("continuarTutorial")
+    if (continuarEm !== null) {
+      const indice = Number.parseInt(continuarEm, 10)
+      setPassos(TOUR_COMPLETO)
+      setPassoAtual(Number.isFinite(indice) && indice >= 0 && indice < TOUR_COMPLETO.length ? indice : 0)
       setAberto(true)
       router.replace(pathname)
       return
@@ -273,6 +301,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     // só existem na home do dashboard -- clicar em "Rever tutorial" de
     // qualquer outra página precisa navegar pra lá primeiro (?abrirTutorial=true
     // é pego pelo efeito de montagem da nova instância do provider, ver acima).
+    aoTerminarRouteRef.current = null
     if (pathname !== "/dashboard") {
       router.push("/dashboard?abrirTutorial=true")
       return
@@ -282,7 +311,8 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setAberto(true)
   }, [pathname, router])
 
-  const abrirAjudaPagina = useCallback((novosPassos: TutorialStep[]) => {
+  const abrirAjudaPagina = useCallback((novosPassos: TutorialStep[], opcoes?: TutorialStepOpcoes) => {
+    aoTerminarRouteRef.current = opcoes?.aoTerminarRoute ?? null
     setPassos(novosPassos)
     setPassoAtual(0)
     setAberto(true)
@@ -292,6 +322,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
     setAberto(false)
     setRect(null)
     if (passos === TOUR_COMPLETO) marcarTutorialVisto()
+    if (aoTerminarRouteRef.current) {
+      const rota = aoTerminarRouteRef.current
+      aoTerminarRouteRef.current = null
+      router.push(rota)
+    }
   }
 
   function avancar() {

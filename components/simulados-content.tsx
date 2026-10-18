@@ -38,7 +38,7 @@ import { PracticeLauncher } from "@/components/practice-launcher"
 import { GeneratingOverlay } from "@/components/generating-overlay"
 import { Pagination, PAGE_SIZE } from "@/components/pagination"
 import { useLanguage } from "@/lib/i18n"
-import { useTutorial, PASSOS_CRIAR_SIMULADO } from "@/components/onboarding-tutorial"
+import { useTutorial, PASSOS_CRIAR_SIMULADO, TOUR_COMPLETO } from "@/components/onboarding-tutorial"
 
 interface Simulado {
   id: string
@@ -84,14 +84,20 @@ export function SimuladosContent() {
   // (?novo=true&tutorialCriar=true) -- o diálogo já abre (efeito acima),
   // aqui só dispara o passo a passo campo a campo assim que ele estiver
   // de fato na tela. tutorialCriarDisparado evita repetir se searchParams
-  // mudar de identidade sem o valor em si ter mudado.
+  // mudar de identidade sem o valor em si ter mudado. aoTerminarRoute
+  // devolve o aluno pro tour completo, continuando logo depois de "Como
+  // criar um simulado" (não do início) -- tanto ao terminar os 7 passos
+  // quanto se clicar "Pular tutorial" no meio.
   const tutorialCriarDisparado = useRef(false)
   useEffect(() => {
     if (!open) return
     if (searchParams.get("tutorialCriar") !== "true") return
     if (tutorialCriarDisparado.current) return
     tutorialCriarDisparado.current = true
-    abrirAjudaPagina(PASSOS_CRIAR_SIMULADO)
+    const indiceContinuar = TOUR_COMPLETO.findIndex((p) => p.tituloKey === "simuladoResolverTitulo")
+    abrirAjudaPagina(PASSOS_CRIAR_SIMULADO, {
+      aoTerminarRoute: `/dashboard?continuarTutorial=${indiceContinuar >= 0 ? indiceContinuar : 0}`,
+    })
     router.replace(pathname)
   }, [open, searchParams, abrirAjudaPagina, router, pathname])
 
