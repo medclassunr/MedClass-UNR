@@ -321,7 +321,14 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       {children}
 
       {aberto && passo && (
-        <div className="fixed inset-0 z-[200]">
+        // pointer-events-auto é necessário (não só cosmético): o Radix
+        // Dialog, quando aberto (ex.: diálogo de criar simulado), seta
+        // document.body.style.pointerEvents = "none" e só reabilita
+        // "auto" explicitamente no próprio conteúdo dele -- sem esse
+        // override aqui, este overlay (que é irmão do Dialog na árvore,
+        // não filho) herdava "none" do body e os botões do tutorial
+        // (Próximo/Pular/Entendi) ficavam visíveis mas INCLICÁVEIS.
+        <div className="pointer-events-auto fixed inset-0 z-[200]">
           {/* Máscara escura em 4 blocos (topo/baixo/esquerda/direita) ao
               redor do recorte, em vez de um único box-shadow com espalhamento
               gigante (9999px) -- essa técnica é conhecida por causar
@@ -426,7 +433,11 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       <button
         type="button"
         onClick={abrirTutorialCompleto}
-        className="fixed bottom-5 right-5 z-[150] flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-lg transition-transform hover:-translate-y-0.5 hover:border-primary/50"
+        // pointer-events-auto pelo mesmo motivo do overlay acima -- esse
+        // botão fica sempre montado, então também sofreria com qualquer
+        // Dialog aberto (ex.: o de criar simulado) desabilitando clique
+        // no body inteiro.
+        className="pointer-events-auto fixed bottom-5 right-5 z-[150] flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-lg transition-transform hover:-translate-y-0.5 hover:border-primary/50"
       >
         <GraduationCap className="h-4 w-4 text-primary" />
         <span className="hidden sm:inline">{t.tutorialDashboard.reverBotao}</span>
