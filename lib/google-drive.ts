@@ -68,11 +68,17 @@ export async function obterMetadadosArquivo(fileId: string): Promise<DriveArquiv
 
 // Baixa os bytes reais do arquivo (alt=media) -- usado pela rota-proxy, pra
 // o aluno nunca ver uma URL drive.google.com e o arquivo nunca ser copiado
-// pro nosso Storage.
-export async function baixarBytesArquivo(fileId: string): Promise<Response> {
+// pro nosso Storage. Repassa o header Range (se vier do navegador) pro Drive
+// -- sem isso, o visualizador de PDF embutido não consegue pedir só um
+// pedaço do arquivo, e arquivos grandes (centenas de MB) travam/erroram ao
+// tentar carregar tudo de uma vez só.
+export async function baixarBytesArquivo(fileId: string, rangeHeader?: string | null): Promise<Response> {
   const params = new URLSearchParams({ alt: "media", key: apiKey() })
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${params.toString()}`)
-  if (!res.ok) {
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?${params.toString()}`,
+    rangeHeader ? { headers: { Range: rangeHeader } } : undefined
+  )
+  if (!res.ok && res.status !== 206) {
     throw new GoogleDriveError("Não foi possível baixar esse arquivo do Drive.", res.status === 404 ? 404 : 502)
   }
   return res

@@ -28,7 +28,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const modo = request.nextUrl.searchParams.get("modo") === "inline" ? "inline" : "download"
 
   try {
-    const [meta, bytes] = await Promise.all([obterMetadadosArquivo(fileId), baixarBytesArquivo(fileId)])
+    const rangeHeader = request.headers.get("range")
+    const [meta, bytes] = await Promise.all([
+      obterMetadadosArquivo(fileId),
+      baixarBytesArquivo(fileId, rangeHeader),
+    ])
 
     const headers = new Headers()
     headers.set("Content-Type", meta.mimeType || "application/octet-stream")
@@ -38,6 +42,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       `${modo === "inline" ? "inline" : "attachment"}; filename="${nomeSeguro}"`
     )
     headers.set("Cache-Control", "private, max-age=0, no-store")
+    headers.set("Accept-Ranges", "bytes")
+
+    // Resposta parcial (206): repassa Content-Range/Content-Length exatos
+    // que o Drive devolveu -- essencial pro visualizador de PDF conseguir
+    // pedir só um pedaço do arquivo em vez de baixar tudo de uma vez
+    // (arquivos grandes travavam/erroravam sem isso).
+    if (bytes.status === 206) {
+      const contentRange = bytes.headers.get("content-range")
+      const contentLength = bytes.headers.get("content-length")
+      if (contentRange) headers.set("Content-Range", contentRange)
+      if (contentLength) headers.set("Content-Length", contentLength)
+      return new NextResponse(bytes.body, { status: 206, headers })
+    }
+
+    // Tamanho real vem dos metadados (o fetch pro Drive às vezes chega com
+    // Transfer-Encoding: chunked, sem Content-Length próprio) -- sem isso o
+    // cliente não consegue calcular % de progresso do download.
+    if (meta.size) headers.set("Content-Length", meta.size)
 
     return new NextResponse(bytes.body, { headers })
   } catch (erro) {

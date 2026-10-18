@@ -94,7 +94,7 @@ export function BibliotecaDriveContent() {
   const [arquivos, setArquivos] = useState<DriveArquivo[]>([])
   const [loadingArquivos, setLoadingArquivos] = useState(false)
   const [erroArquivos, setErroArquivos] = useState(false)
-  const [baixandoId, setBaixandoId] = useState<string | null>(null)
+  const [baixando, setBaixando] = useState<{ id: string; percent: number | null } | null>(null)
   const [visualizando, setVisualizando] = useState<DriveArquivo | null>(null)
   const [tokenAtual, setTokenAtual] = useState<string | null>(null)
 
@@ -139,11 +139,25 @@ export function BibliotecaDriveContent() {
   const pastaConfigurada = (key: string) => pastas.some((p) => p.materia_key === key && p.tipo === tipoDaMateria(key))
 
   const handleBaixar = async (arquivo: DriveArquivo) => {
-    setBaixandoId(arquivo.id)
+    setBaixando({ id: arquivo.id, percent: 0 })
     try {
       const res = await authedFetch(`/api/biblioteca/arquivo/${arquivo.id}?modo=download`)
-      if (!res.ok) throw new Error("erro")
-      const blob = await res.blob()
+      if (!res.ok || !res.body) throw new Error("erro")
+
+      const total = Number(res.headers.get("content-length")) || null
+      const reader = res.body.getReader()
+      const chunks: Uint8Array[] = []
+      let recebido = 0
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        chunks.push(value)
+        recebido += value.length
+        setBaixando({ id: arquivo.id, percent: total ? Math.min(100, Math.round((recebido / total) * 100)) : null })
+      }
+
+      const blob = new Blob(chunks as BlobPart[], { type: arquivo.mimeType })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
@@ -155,7 +169,7 @@ export function BibliotecaDriveContent() {
     } catch {
       alert(t.biblioteca.erroBaixar)
     } finally {
-      setBaixandoId(null)
+      setBaixando(null)
     }
   }
 
@@ -233,29 +247,42 @@ export function BibliotecaDriveContent() {
                       {ext && <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium">{ext}</Badge>}
                       <span className="tabular-nums">{formatBytes(arquivo.size)}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleVisualizar(arquivo)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        title={t.biblioteca.visualizar}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleBaixar(arquivo)}
-                        disabled={baixandoId === arquivo.id}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
-                        title={t.biblioteca.baixar}
-                      >
-                        {baixandoId === arquivo.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
+                    {baixando?.id === arquivo.id ? (
+                      <div className="flex w-28 shrink-0 items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                          {baixando.percent === null ? (
+                            <div className="h-full w-full origin-left animate-pulse rounded-full bg-primary/60" />
+                          ) : (
+                            <div
+                              className="h-full rounded-full bg-primary transition-[width]"
+                              style={{ width: `${baixando.percent}%` }}
+                            />
+                          )}
+                        </div>
+                        <span className="w-8 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+                          {baixando.percent === null ? "..." : `${baixando.percent}%`}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleVisualizar(arquivo)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          title={t.biblioteca.visualizar}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBaixar(arquivo)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          title={t.biblioteca.baixar}
+                        >
                           <Download className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
