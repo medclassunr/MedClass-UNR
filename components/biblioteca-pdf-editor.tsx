@@ -452,14 +452,31 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
   // Range.getBoundingClientRect() no nó de texto), e só depois fundimos
   // índices contíguos marcados num único retângulo -- dá pra grifar só
   // "metade de uma palavra", igual um marca-texto de verdade.
+  // Seleção por INTERVALO DE LEITURA, não por um retângulo geométrico
+  // único -- um retângulo só (min/maxX de só 2 pontos) é matematicamente
+  // errado pra arrasto de 2+ linhas (linhas com larguras/recuos diferentes
+  // cortam no lugar errado). Igual um editor de texto de verdade: a linha
+  // onde o arrasto COMEÇA só pega da coluna inicial em diante; a linha
+  // onde TERMINA só pega até a coluna final; qualquer linha entre as duas
+  // é pega inteira. Teste por CENTRO do caractere (não por sobreposição de
+  // retângulo) -- decide de um lado ou do outro do ponto largado, sem
+  // ambiguidade de borda.
   const comitarMarcaTexto = (pontos: Ponto[]) => {
     if (pontos.length === 0) return
-    const inicio = pontos[0]
-    const fim = pontos[pontos.length - 1]
-    const minX = Math.min(inicio.x, fim.x) * escala
-    const maxX = Math.max(inicio.x, fim.x) * escala
-    const minY = Math.min(inicio.y, fim.y) * escala
-    const maxY = Math.max(inicio.y, fim.y) * escala
+    let a = pontos[0]
+    let b = pontos[pontos.length - 1]
+    if (a.y > b.y || (a.y === b.y && a.x > b.x)) {
+      const tmp = a
+      a = b
+      b = tmp
+    }
+
+    const inicioX = a.x * escala
+    const fimX = b.x * escala
+    const inicioY = a.y * escala
+    const fimY = b.y * escala
+    const minY = Math.min(inicioY, fimY)
+    const maxY = Math.max(inicioY, fimY)
 
     const spans = textLayerRef.current?.querySelectorAll("span") ?? []
     const containerRect = textLayerRef.current?.getBoundingClientRect()
@@ -472,14 +489,17 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
       const textNode = span.firstChild
       if (!texto.trim() || !textNode || textNode.nodeType !== Node.TEXT_NODE) return
 
-      // Descarta a span toda de cara se nem tocar o retângulo do arrasto --
-      // evita percorrer caractere por caractere de uma página inteira.
       const spanRect = span.getBoundingClientRect()
-      const spanRelX = spanRect.left - containerRect.left
-      const spanRelY = spanRect.top - containerRect.top
-      const tocaSpan =
-        spanRelX < maxX && spanRelX + spanRect.width > minX && spanRelY < maxY && spanRelY + spanRect.height > minY
-      if (!tocaSpan) return
+      const spanTop = spanRect.top - containerRect.top
+      const spanBottom = spanTop + spanRect.height
+      // Descarta logo a linha que nem toca a faixa vertical do arrasto --
+      // evita percorrer caractere por caractere de uma página inteira.
+      if (spanBottom <= minY || spanTop >= maxY) return
+
+      const ehLinhaInicio = inicioY >= spanTop && inicioY < spanBottom
+      const ehLinhaFim = fimY >= spanTop && fimY < spanBottom
+      const limiteEsquerdo = ehLinhaInicio ? inicioX : -Infinity
+      const limiteDireito = ehLinhaFim ? fimX : Infinity
 
       const range = document.createRange()
       let inicioRun = -1
@@ -506,9 +526,8 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
         range.setStart(textNode, i)
         range.setEnd(textNode, i + 1)
         const r = range.getBoundingClientRect()
-        const relX = r.left - containerRect.left
-        const relY = r.top - containerRect.top
-        const tocaCaractere = relX < maxX && relX + r.width > minX && relY < maxY && relY + r.height > minY
+        const centroX = r.left - containerRect.left + r.width / 2
+        const tocaCaractere = centroX >= limiteEsquerdo && centroX <= limiteDireito
         if (tocaCaractere && inicioRun === -1) inicioRun = i
         if (!tocaCaractere) fecharRun(i)
       }
