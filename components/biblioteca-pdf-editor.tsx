@@ -422,9 +422,15 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
     }
   }
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (ev: React.PointerEvent) => {
     const arrasto = arrastoRef.current
     if (!arrasto.tipo) return
+
+    // O navegador não garante um pointermove exatamente na posição de
+    // soltar o botão/dedo (eventos são throttled/coalescidos) -- sem
+    // registrar esse ponto final aqui, um arrasto rápido terminava "curto"
+    // e a última palavra da linha ficava de fora do grifo.
+    arrasto.pontos.push(pointerParaCoordenada(ev))
 
     if (arrasto.tipo === "caneta" && arrasto.pontos.length >= 2) {
       const pagina = paginaDe(paginas, paginaAtual)
@@ -859,8 +865,8 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
                   handlePointerMove(ev)
                   moverElemento(ev)
                 }}
-                onPointerUp={() => {
-                  handlePointerUp()
+                onPointerUp={(ev) => {
+                  handlePointerUp(ev)
                   finalizarArrastoElemento()
                 }}
               />
