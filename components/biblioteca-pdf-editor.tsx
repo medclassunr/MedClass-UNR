@@ -439,6 +439,13 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
     arrastoRef.current = { tipo: null, pontos: [] }
   }
 
+  // Precisão por caractere, não por span inteira: cada <span> do pdf.js
+  // normalmente é uma linha/trecho inteiro de texto -- marcar a span toda
+  // sempre que o arrasto tocasse nela grifava palavras/trechos que o aluno
+  // nem passou o mouse por cima. Aqui testamos caractere a caractere (via
+  // Range.getBoundingClientRect() no nó de texto), e só depois fundimos
+  // índices contíguos marcados num único retângulo -- dá pra grifar só
+  // "metade de uma palavra", igual um marca-texto de verdade.
   const comitarMarcaTexto = (pontos: Ponto[]) => {
     if (pontos.length === 0) return
     const inicio = pontos[0]
@@ -453,20 +460,53 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
     if (!containerRect) return
 
     const novosHighlights: AnotacaoHighlight[] = []
+
     spans.forEach((span) => {
-      const r = span.getBoundingClientRect()
-      const relX = r.left - containerRect.left
-      const relY = r.top - containerRect.top
-      const intersecta = relX < maxX && relX + r.width > minX && relY < maxY && relY + r.height > minY
-      if (!intersecta || !span.textContent?.trim()) return
-      novosHighlights.push({
-        id: gerarId(),
-        x: relX / escala,
-        y: relY / escala,
-        largura: r.width / escala,
-        altura: r.height / escala,
-        cor: COR_HIGHLIGHT,
-      })
+      const texto = span.textContent ?? ""
+      const textNode = span.firstChild
+      if (!texto.trim() || !textNode || textNode.nodeType !== Node.TEXT_NODE) return
+
+      // Descarta a span toda de cara se nem tocar o retângulo do arrasto --
+      // evita percorrer caractere por caractere de uma página inteira.
+      const spanRect = span.getBoundingClientRect()
+      const spanRelX = spanRect.left - containerRect.left
+      const spanRelY = spanRect.top - containerRect.top
+      const tocaSpan =
+        spanRelX < maxX && spanRelX + spanRect.width > minX && spanRelY < maxY && spanRelY + spanRect.height > minY
+      if (!tocaSpan) return
+
+      const range = document.createRange()
+      let inicioRun = -1
+
+      const fecharRun = (fimRun: number) => {
+        if (inicioRun === -1) return
+        range.setStart(textNode, inicioRun)
+        range.setEnd(textNode, fimRun)
+        const r = range.getBoundingClientRect()
+        if (r.width > 0 && r.height > 0) {
+          novosHighlights.push({
+            id: gerarId(),
+            x: (r.left - containerRect.left) / escala,
+            y: (r.top - containerRect.top) / escala,
+            largura: r.width / escala,
+            altura: r.height / escala,
+            cor: COR_HIGHLIGHT,
+          })
+        }
+        inicioRun = -1
+      }
+
+      for (let i = 0; i < texto.length; i++) {
+        range.setStart(textNode, i)
+        range.setEnd(textNode, i + 1)
+        const r = range.getBoundingClientRect()
+        const relX = r.left - containerRect.left
+        const relY = r.top - containerRect.top
+        const tocaCaractere = relX < maxX && relX + r.width > minX && relY < maxY && relY + r.height > minY
+        if (tocaCaractere && inicioRun === -1) inicioRun = i
+        if (!tocaCaractere) fecharRun(i)
+      }
+      fecharRun(texto.length)
     })
 
     if (novosHighlights.length === 0) return
