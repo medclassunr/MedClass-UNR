@@ -143,8 +143,11 @@ export function BibliotecaDriveContent() {
     setProntoPara(null)
     authedFetch(`/api/biblioteca/arquivos?folderId=${encodeURIComponent(pastaConfigAtual.drive_folder_id)}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error("erro")
-        const json = await res.json()
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          console.error("[biblioteca] erro ao listar arquivos:", res.status, json?.error)
+          throw new Error(json?.error ?? "erro")
+        }
         setArquivos(json.arquivos ?? [])
       })
       .catch(() => setErroArquivos(true))

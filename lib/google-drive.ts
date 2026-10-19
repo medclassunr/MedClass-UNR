@@ -38,8 +38,11 @@ export async function listarArquivosDaPasta(folderId: string): Promise<DriveArqu
     key: apiKey(),
   })
 
+  // cache: "no-store" -- sem isso, uma falha antiga (ex.: API key ainda não
+  // configurada na Vercel) podia ficar presa no Data Cache do Next e
+  // continuar aparecendo mesmo depois do problema real já corrigido.
   const res = await fetch(`https://www.googleapis.com/drive/v3/files?${params.toString()}`, {
-    next: { revalidate: 300 },
+    cache: "no-store",
   })
 
   if (!res.ok) {
