@@ -1,5 +1,13 @@
 "use client"
 
+// Obrigatório pro pdf.js posicionar as <span> da camada de texto em cima da
+// palavra certa (position:absolute por span, via seletor `.textLayer span`
+// -- sem essa classe/CSS, as spans ficam no fluxo normal do documento,
+// empilhadas no canto superior esquerdo, e o marca-texto (que lê
+// getBoundingClientRect() de cada span pra saber onde encaixar o grifo)
+// acaba desenhando o grifo em qualquer lugar errado, geralmente na margem
+// esquerda em branco -- foi exatamente o bug relatado.
+import "pdfjs-dist/web/pdf_viewer.css"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowLeft,
@@ -738,7 +746,7 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
           ) : (
             <div className="relative mx-auto" style={{ width: "fit-content" }}>
               <canvas ref={canvasPdfRef} className="block shadow-md" />
-              <div ref={textLayerRef} className="pdf-text-layer pointer-events-none absolute left-0 top-0 opacity-0" />
+              <div ref={textLayerRef} className="textLayer pointer-events-none absolute left-0 top-0" />
               <canvas ref={canvasDesenhoRef} className="pointer-events-none absolute left-0 top-0" />
 
               {/* Highlights */}
