@@ -445,98 +445,76 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
     arrastoRef.current = { tipo: null, pontos: [] }
   }
 
-  // Precisão por caractere, não por span inteira: cada <span> do pdf.js
-  // normalmente é uma linha/trecho inteiro de texto -- marcar a span toda
-  // sempre que o arrasto tocasse nela grifava palavras/trechos que o aluno
-  // nem passou o mouse por cima. Aqui testamos caractere a caractere (via
-  // Range.getBoundingClientRect() no nó de texto), e só depois fundimos
-  // índices contíguos marcados num único retângulo -- dá pra grifar só
-  // "metade de uma palavra", igual um marca-texto de verdade.
-  // Seleção por INTERVALO DE LEITURA, não por um retângulo geométrico
-  // único -- um retângulo só (min/maxX de só 2 pontos) é matematicamente
-  // errado pra arrasto de 2+ linhas (linhas com larguras/recuos diferentes
-  // cortam no lugar errado). Igual um editor de texto de verdade: a linha
-  // onde o arrasto COMEÇA só pega da coluna inicial em diante; a linha
-  // onde TERMINA só pega até a coluna final; qualquer linha entre as duas
-  // é pega inteira. Teste por CENTRO do caractere (não por sobreposição de
-  // retângulo) -- decide de um lado ou do outro do ponto largado, sem
-  // ambiguidade de borda.
+  const ALTURA_PADRAO_LINHA = 14 // em unidades "escala 1", usado quando não acha texto real por perto
+
+  // Altura (em unidades "escala 1") da linha de texto real mais próxima do
+  // centro vertical do arrasto, se houver -- só usada pra dar um tamanho
+  // "do jeito que o texto é" ao traço; não limita ONDE o aluno pode marcar.
+  const alturaLinhaProxima = (centroYScala1: number): number | null => {
+    const containerRect = textLayerRef.current?.getBoundingClientRect()
+    if (!containerRect) return null
+    const centroYTela = centroYScala1 * escala
+    const spans = textLayerRef.current?.querySelectorAll("span") ?? []
+    for (const span of spans) {
+      if (!span.textContent?.trim()) continue
+      const r = span.getBoundingClientRect()
+      const top = r.top - containerRect.top
+      const bottom = top + r.height
+      if (centroYTela >= top - 4 && centroYTela <= bottom + 4) return r.height / escala
+    }
+    return null
+  }
+
+  // Marca-texto LIVRE (estilo GoodNotes): marca exatamente onde o aluno
+  // arrasta, sem depender de encaixar em texto real -- funciona em
+  // qualquer PDF, inclusive em cima de imagens/diagramas. Se o arrasto for
+  // de 1 linha só (largura bem maior que altura), o traço é "endireitado":
+  // ignora a trepidação natural da mão e desenha uma faixa perfeitamente
+  // horizontal, do tamanho de uma linha de texto, centrada na altura média
+  // do arrasto -- exatamente o que o GoodNotes faz quando o sublinhado sai
+  // torto. Arrastos mais altos que largos (cobrindo várias linhas de
+  // propósito) viram um bloco único, sem forçar nivelamento.
   const comitarMarcaTexto = (pontos: Ponto[]) => {
     if (pontos.length === 0) return
-    let a = pontos[0]
-    let b = pontos[pontos.length - 1]
-    if (a.y > b.y || (a.y === b.y && a.x > b.x)) {
-      const tmp = a
-      a = b
-      b = tmp
+    let minX = pontos[0].x
+    let maxX = pontos[0].x
+    let minY = pontos[0].y
+    let maxY = pontos[0].y
+    for (const p of pontos) {
+      minX = Math.min(minX, p.x)
+      maxX = Math.max(maxX, p.x)
+      minY = Math.min(minY, p.y)
+      maxY = Math.max(maxY, p.y)
     }
 
-    const inicioX = a.x * escala
-    const fimX = b.x * escala
-    const inicioY = a.y * escala
-    const fimY = b.y * escala
-    const minY = Math.min(inicioY, fimY)
-    const maxY = Math.max(inicioY, fimY)
+    const largura = maxX - minX
+    const altura = maxY - minY
+    if (largura * escala < 4 && altura * escala < 4) return // clique sem arrastar, ignora
 
-    const spans = textLayerRef.current?.querySelectorAll("span") ?? []
-    const containerRect = textLayerRef.current?.getBoundingClientRect()
-    if (!containerRect) return
+    const centroY = (minY + maxY) / 2
+    const alturaLinha = alturaLinhaProxima(centroY) ?? ALTURA_PADRAO_LINHA
 
-    const novosHighlights: AnotacaoHighlight[] = []
-
-    spans.forEach((span) => {
-      const texto = span.textContent ?? ""
-      const textNode = span.firstChild
-      if (!texto.trim() || !textNode || textNode.nodeType !== Node.TEXT_NODE) return
-
-      const spanRect = span.getBoundingClientRect()
-      const spanTop = spanRect.top - containerRect.top
-      const spanBottom = spanTop + spanRect.height
-      // Descarta logo a linha que nem toca a faixa vertical do arrasto --
-      // evita percorrer caractere por caractere de uma página inteira.
-      if (spanBottom <= minY || spanTop >= maxY) return
-
-      const ehLinhaInicio = inicioY >= spanTop && inicioY < spanBottom
-      const ehLinhaFim = fimY >= spanTop && fimY < spanBottom
-      const limiteEsquerdo = ehLinhaInicio ? inicioX : -Infinity
-      const limiteDireito = ehLinhaFim ? fimX : Infinity
-
-      const range = document.createRange()
-      let inicioRun = -1
-
-      const fecharRun = (fimRun: number) => {
-        if (inicioRun === -1) return
-        range.setStart(textNode, inicioRun)
-        range.setEnd(textNode, fimRun)
-        const r = range.getBoundingClientRect()
-        if (r.width > 0 && r.height > 0) {
-          novosHighlights.push({
+    const novo: AnotacaoHighlight =
+      altura <= alturaLinha * 1.6
+        ? {
             id: gerarId(),
-            x: (r.left - containerRect.left) / escala,
-            y: (r.top - containerRect.top) / escala,
-            largura: r.width / escala,
-            altura: r.height / escala,
+            x: minX,
+            y: centroY - alturaLinha / 2,
+            largura: Math.max(largura, 6),
+            altura: alturaLinha,
             cor: COR_HIGHLIGHT,
-          })
-        }
-        inicioRun = -1
-      }
+          }
+        : {
+            id: gerarId(),
+            x: minX,
+            y: minY,
+            largura: Math.max(largura, 6),
+            altura: Math.max(altura, alturaLinha),
+            cor: COR_HIGHLIGHT,
+          }
 
-      for (let i = 0; i < texto.length; i++) {
-        range.setStart(textNode, i)
-        range.setEnd(textNode, i + 1)
-        const r = range.getBoundingClientRect()
-        const centroX = r.left - containerRect.left + r.width / 2
-        const tocaCaractere = centroX >= limiteEsquerdo && centroX <= limiteDireito
-        if (tocaCaractere && inicioRun === -1) inicioRun = i
-        if (!tocaCaractere) fecharRun(i)
-      }
-      fecharRun(texto.length)
-    })
-
-    if (novosHighlights.length === 0) return
     const pagina = paginaDe(paginas, paginaAtual)
-    aplicarMudanca({ ...pagina, highlights: [...pagina.highlights, ...novosHighlights] })
+    aplicarMudanca({ ...pagina, highlights: [...pagina.highlights, novo] })
   }
 
   const apagarProximo = (ponto: Ponto) => {
