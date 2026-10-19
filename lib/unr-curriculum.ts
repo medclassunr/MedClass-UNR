@@ -9,7 +9,7 @@ export const MATERIA_KEYS_BY_ANO: Record<AnoKey, string[]> = {
   ano1: ["crescimento_desenvolvimento", "nutricao"],
   ano2: ["sexualidade_genero_reproducao", "trabalho_tempo_livre", "ser_humano_meio"],
   ano3: ["injuria", "defesa"],
-  ano4: ["clinica_medica_4", "pediatria_4", "oftalmologia", "otorrinolaringologia", "farmacologia", "ginecologia_obstetricia", "urologia"],
+  ano4: ["clinica_medica_4", "cirurgia_4", "pediatria_4", "oftalmologia", "otorrinolaringologia", "farmacologia", "ginecologia_obstetricia", "urologia"],
   ano5: ["cirurgia_5", "pediatria_5", "clinica_medica_5", "medicina_legal"],
 }
 
