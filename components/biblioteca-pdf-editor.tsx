@@ -198,7 +198,14 @@ export function BibliotecaPdfEditor({ chaveAnotacao, nome, onClose, driveFileId,
       setErro(null)
       try {
         const pdfjsLib = await import("pdfjs-dist")
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+        // Servido do próprio domínio (public/pdf.worker.min.mjs, copiado de
+        // node_modules/pdfjs-dist/build na mesma versão do pacote) -- carregar
+        // o worker de um CDN (unpkg etc.) é bloqueado pela Content-Security-
+        // Policy do site (script-src só libera 'self' + alguns domínios
+        // específicos, não CDNs genéricos -- ver next.config.mjs). Sem isso o
+        // pdf.js cai pro modo "fake worker" (thread principal) e depois dá
+        // erro de rede de qualquer forma.
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs"
 
         let loadingTask
         if (urlPdf) {
