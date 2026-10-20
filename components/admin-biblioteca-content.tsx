@@ -222,7 +222,7 @@ export function AdminBibliotecaContent() {
       {materiasPorAno.map(({ ano, materias }) => (
         <section key={ano} className="space-y-3">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {ano === "basicas" ? "Ciências Básicas" : ANO_LABEL_PT[ano]}
+            {ano === "basicas" ? "Libros (Ciências Básicas)" : ANO_LABEL_PT[ano]}
           </h3>
           <div className="space-y-2">
             {materias.map((materiaKey) => {

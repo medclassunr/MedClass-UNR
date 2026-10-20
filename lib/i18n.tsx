@@ -441,7 +441,7 @@ const pt = {
   },
   biblioteca: {
     carregando: "Carregando...",
-    cienciasBasicasTitulo: "Ciências Básicas",
+    cienciasBasicasTitulo: "Libros",
     pastaLivros: "Libros",
     pastaResumos: "Resúmenes",
     voltar: "Voltar",
@@ -1764,7 +1764,7 @@ const es: typeof pt = {
   },
   biblioteca: {
     carregando: "Cargando...",
-    cienciasBasicasTitulo: "Ciencias Básicas",
+    cienciasBasicasTitulo: "Libros",
     pastaLivros: "Libros",
     pastaResumos: "Resúmenes",
     voltar: "Volver",
