@@ -26,7 +26,7 @@ import { useTutorial, AVATAR_FRAMES, type TutorialStep } from "@/components/onbo
 
 // Pose fixa (não sorteada) -- este avatar é um ícone fixo/reconhecível,
 // diferente das poses aleatórias do card do tour.
-const AVATAR_ICONE = AVATAR_FRAMES[0]
+const AVATAR_ICONE = AVATAR_FRAMES[0].src
 
 function passoUnico(tituloKey: TutorialStep["tituloKey"], textoKey: TutorialStep["textoKey"]): TutorialStep[] {
   return [{ tituloKey, textoKey, selector: null }]

@@ -157,19 +157,42 @@ export const PASSOS_FERRAMENTAS_BIBLIOTECA: TutorialStep[] = [
 // aparelho/imagem), confirmados em testes reais no celular mesmo com os
 // arquivos .webp já corretos a nível de bytes. PNG tem suporte a alpha
 // sólido e universal em todos os navegadores.
-export const AVATAR_FRAMES = [
-  "/tutorial/avatar-medica-tutorial-1.png",
-  "/tutorial/avatar-medica-tutorial-2.png",
-  "/tutorial/avatar-medica-tutorial-3.png",
-  "/tutorial/avatar-medica-tutorial-4.png",
-  "/tutorial/avatar-medica-tutorial-5.png",
-  "/tutorial/avatar-medica-tutorial-6.png",
+//
+// "direcao" = pra que lado a mão/dedo da pose está gesticulando (null =
+// pose neutra, sem gesto direcional, ex.: braços cruzados/mãos no bolso).
+// Usado por escolherPose() pra nunca sortear uma pose apontando pro lado
+// ERRADO -- o avatar "estoura" (bleed) pra fora do cartão em alternância
+// esquerda/direita a cada passo (ver ladoInvertido mais abaixo), e só faz
+// sentido visualmente se a mão gesticular NA DIREÇÃO do texto (que fica do
+// lado oposto de onde o avatar aparece).
+interface AvatarFrame {
+  src: string
+  direcao: "esquerda" | "direita" | null
+}
+
+export const AVATAR_FRAMES: AvatarFrame[] = [
+  { src: "/tutorial/avatar-tutorial-1.png", direcao: "esquerda" },
+  { src: "/tutorial/avatar-tutorial-2.png", direcao: null },
+  { src: "/tutorial/avatar-tutorial-3.png", direcao: "direita" },
+  { src: "/tutorial/avatar-tutorial-4.png", direcao: null },
+  { src: "/tutorial/avatar-tutorial-5.png", direcao: "esquerda" },
+  { src: "/tutorial/avatar-tutorial-6.png", direcao: "esquerda" },
 ]
 
-function sortearPose(anterior: number): number {
-  if (AVATAR_FRAMES.length <= 1) return 0
-  let proxima = Math.floor(Math.random() * AVATAR_FRAMES.length)
-  while (proxima === anterior) proxima = Math.floor(Math.random() * AVATAR_FRAMES.length)
+// direcaoNecessaria: null quando o layout não tem lado fixo pro avatar
+// (ex.: passo com cardNaEsquerda, onde o avatar fica centralizado acima do
+// cartão, não "estourando" pra um lado) -- nesse caso qualquer pose serve.
+// Quando há lado definido, restringe o sorteio só às poses compatíveis
+// (direção pedida OU neutras) -- uma pose "esquerda" nunca é sorteada pro
+// lado que precisava de "direita", e vice-versa.
+function escolherPose(anterior: number, direcaoNecessaria: "esquerda" | "direita" | null): number {
+  const indicesCompativeis = AVATAR_FRAMES.map((_, i) => i).filter(
+    (i) => !direcaoNecessaria || AVATAR_FRAMES[i].direcao === direcaoNecessaria || AVATAR_FRAMES[i].direcao === null
+  )
+  const pool = indicesCompativeis.length > 0 ? indicesCompativeis : AVATAR_FRAMES.map((_, i) => i)
+  if (pool.length <= 1) return pool[0] ?? 0
+  let proxima = pool[Math.floor(Math.random() * pool.length)]
+  while (proxima === anterior) proxima = pool[Math.floor(Math.random() * pool.length)]
   return proxima
 }
 
@@ -224,14 +247,22 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const aoTerminarRouteRef = useRef<string | null>(null)
 
   // Sorteia uma pose nova (nunca igual à anterior) toda vez que um passo
-  // novo é mostrado -- pedido explícito: aleatório, não sequencial. Exceto
-  // quando o passo fixa uma pose (avatarIdx), pra evitar gesto direcional
-  // (ex.: apontando pra direita) que contradiga a posição real do elemento
-  // destacado na tela.
+  // novo é mostrado -- pedido explícito: aleatório, não sequencial, mas
+  // sempre compatível com o lado em que o avatar vai aparecer nesse passo
+  // (ver escolherPose/ladoInvertido) -- não sorteia mais uma pose apontando
+  // pro lado errado. Passo com avatarIdx fixo (nenhum hoje) continua tendo
+  // prioridade sobre o sorteio.
   useEffect(() => {
     if (!aberto) return
-    const fixa = passos[passoAtual]?.avatarIdx
-    setAvatarIdx((anterior) => (fixa !== undefined ? fixa : sortearPose(anterior)))
+    const passo = passos[passoAtual]
+    const fixa = passo?.avatarIdx
+    if (fixa !== undefined) {
+      setAvatarIdx(fixa)
+      return
+    }
+    const ladoInvertidoDoPasso = passoAtual % 2 === 1
+    const direcaoNecessaria = passo?.cardNaEsquerda ? null : ladoInvertidoDoPasso ? "esquerda" : "direita"
+    setAvatarIdx((anterior) => escolherPose(anterior, direcaoNecessaria))
   }, [aberto, passoAtual, passos])
 
   // Tour completo sozinho só na 1ª vez (profiles.tutorial_dashboard_visto),
@@ -387,7 +418,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const ultimo = passoAtual === passos.length - 1
   const ladoInvertido = passoAtual % 2 === 1
   const cardEsquerda = !!passo?.cardNaEsquerda
-  const avatarSrc = AVATAR_FRAMES[avatarIdx]
+  const avatarSrc = AVATAR_FRAMES[avatarIdx].src
   const contador = t.tutorialDashboard.contadorPasso
     .replace("{atual}", String(passoAtual + 1))
     .replace("{total}", String(passos.length))
