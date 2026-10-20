@@ -54,7 +54,7 @@ const MATERIA_LABEL_PT: Record<string, string> = {
   genetica: "Genética",
   imunologia: "Imunologia",
   microbiologia: "Microbiologia",
-  parasitologia: "Parasitologia",
+  parasitologia: "Semiologia",
   patologia: "Patologia",
   farmacologia_base: "Farmacologia",
 }

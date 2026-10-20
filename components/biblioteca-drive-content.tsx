@@ -88,8 +88,16 @@ function tipoDaMateria(materiaKey: string): "livro" | "resumo" {
   return (DISCIPLINA_BASE_KEYS as readonly string[]).includes(materiaKey) ? "livro" : "resumo"
 }
 
+// Só o nome exibido NESSA pasta da Biblioteca -- a chave continua
+// "parasitologia" (não mexe em questões/flashcards/estatísticas, que
+// usam t.cronograma.disciplinaBaseLabel direto, sem passar por aqui).
+const BIBLIOTECA_LABEL_OVERRIDE: Record<"pt" | "es", Record<string, string>> = {
+  pt: { parasitologia: "Semiologia" },
+  es: { parasitologia: "Semiología" },
+}
+
 export function BibliotecaDriveContent() {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -194,7 +202,7 @@ export function BibliotecaDriveContent() {
   }, [materiaKey, prontoPara, arquivos, searchParams])
 
   const materiaLabel = (key: string) =>
-    t.cronograma.materiaLabel[key] ?? t.cronograma.disciplinaBaseLabel[key] ?? key
+    BIBLIOTECA_LABEL_OVERRIDE[lang]?.[key] ?? t.cronograma.materiaLabel[key] ?? t.cronograma.disciplinaBaseLabel[key] ?? key
 
   const pastaConfigurada = (key: string) => pastas.some((p) => p.materia_key === key && p.tipo === tipoDaMateria(key))
 
