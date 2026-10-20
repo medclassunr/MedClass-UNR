@@ -454,11 +454,13 @@ export function BibliotecaDriveContent() {
     )
   }
 
+  // keys já vem filtrada só com matérias configuradas (ver chamadas
+  // abaixo) -- a pasta nunca aparece "Em breve" aqui, só depois de clicar
+  // (ex.: matéria com Libros configurado mas Resúmenes ainda não).
   const FolderGrid = ({ keys }: { keys: readonly string[] }) => (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {keys.map((key) => {
         const cor = getMateriaColor(key)
-        const configurada = pastaConfigurada(key)
         return (
           <button
             key={key}
@@ -470,20 +472,9 @@ export function BibliotecaDriveContent() {
             }}
             className="text-left"
           >
-            <Card
-              className={`group overflow-hidden border p-5 transition-all ${cor.borderSoft} bg-card ${
-                configurada ? `${cor.hoverBorder} ${cor.hoverGlow}` : "opacity-70"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${cor.bgSoft}`}>
-                  <Folder className={`h-5 w-5 ${cor.text} transition-transform group-hover:scale-110`} />
-                </div>
-                {!configurada && (
-                  <Badge variant="outline" className="text-[10px]">
-                    {t.biblioteca.emBreve}
-                  </Badge>
-                )}
+            <Card className={`group overflow-hidden border p-5 transition-all ${cor.borderSoft} bg-card ${cor.hoverBorder} ${cor.hoverGlow}`}>
+              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${cor.bgSoft}`}>
+                <Folder className={`h-5 w-5 ${cor.text} transition-transform group-hover:scale-110`} />
               </div>
               <h3 className="mt-3 text-sm font-semibold leading-snug text-foreground">{materiaLabel(key)}</h3>
             </Card>
@@ -497,6 +488,8 @@ export function BibliotecaDriveContent() {
     <div className="space-y-8">
       {ANO_KEYS.map((ano: AnoKey) => {
         const cor = getAnoColor(ano)
+        const keys = MATERIA_KEYS_BY_ANO[ano].filter(pastaConfigurada)
+        if (keys.length === 0) return null
         return (
           <section key={ano} className="space-y-3">
             <div className="flex items-center gap-2">
@@ -505,19 +498,25 @@ export function BibliotecaDriveContent() {
                 {t.cronograma.anoLabel[ano]}
               </h2>
             </div>
-            <FolderGrid keys={MATERIA_KEYS_BY_ANO[ano]} />
+            <FolderGrid keys={keys} />
           </section>
         )
       })}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-muted-foreground" />
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {t.biblioteca.cienciasBasicasTitulo}
-          </h2>
-        </div>
-        <FolderGrid keys={DISCIPLINA_BASE_KEYS} />
-      </section>
+      {(() => {
+        const keys = (DISCIPLINA_BASE_KEYS as readonly string[]).filter(pastaConfigurada)
+        if (keys.length === 0) return null
+        return (
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground" />
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t.biblioteca.cienciasBasicasTitulo}
+              </h2>
+            </div>
+            <FolderGrid keys={keys} />
+          </section>
+        )
+      })()}
     </div>
   )
 }
