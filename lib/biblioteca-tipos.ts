@@ -7,7 +7,7 @@ export type TipoBiblioteca = "livro" | "resumo"
 // Pediatria (4º e 5º ano compartilhando os mesmos livros). Todas as
 // outras matérias por ano continuam só com "resumo"; Ciências Básicas
 // continuam só com "livro" -- ver tiposDaMateria().
-const MATERIAS_COM_LIBROS_E_RESUMOS = ["pediatria_4", "pediatria_5"]
+const MATERIAS_COM_LIBROS_E_RESUMOS = ["pediatria_4", "pediatria_5", "farmacologia"]
 
 // Lista de tipos de pasta válidos pra uma matéria, na ordem em que devem
 // aparecer na UI. A maioria das matérias tem só 1 tipo (nesse caso a
