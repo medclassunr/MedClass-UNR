@@ -189,7 +189,7 @@ export function NotificationsPanel() {
                       </p>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{timeAgo(not.created_at)}</span>
                     </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{not.mensagem}</p>
+                    <p className="mt-0.5 whitespace-pre-line text-xs text-muted-foreground">{not.mensagem}</p>
                     <div className="mt-1.5 flex items-center gap-3">
                       {not.link && (
                         <Link

@@ -289,7 +289,7 @@ export function AdminAvisosContent() {
                 ) : (
                   <div>
                     <p className="font-medium text-foreground">{aviso.titulo}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{aviso.mensagem}</p>
+                    <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{aviso.mensagem}</p>
                     {aviso.status === "enviado" && (
                       <p className="mt-1 text-xs text-muted-foreground">
                         Enviado para: {AVISO_DESTINO_LABEL[aviso.destino ?? "todas"]}
