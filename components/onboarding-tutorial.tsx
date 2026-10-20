@@ -246,6 +246,19 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   // dentro de encerrar(), não precisa re-renderizar nada quando muda.
   const aoTerminarRouteRef = useRef<string | null>(null)
 
+  // Pré-carrega as 6 poses assim que o provider monta (não só quando o
+  // tutorial abre) -- sem isso, a primeira vez que uma pose específica
+  // aparece o navegador ainda não buscou o arquivo, e o <img> continua
+  // mostrando a pose ANTERIOR na tela até o download terminar (fica um
+  // "flash" visível trocando de uma pra outra). Com isso já no cache do
+  // navegador, a troca do src é instantânea.
+  useEffect(() => {
+    AVATAR_FRAMES.forEach((frame) => {
+      const img = new window.Image()
+      img.src = frame.src
+    })
+  }, [])
+
   // Sorteia uma pose nova (nunca igual à anterior) toda vez que um passo
   // novo é mostrado -- pedido explícito: aleatório, não sequencial, mas
   // sempre compatível com o lado em que o avatar vai aparecer nesse passo
