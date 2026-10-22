@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { IconChip } from "@/components/ui/icon-chip"
-import { ANO_KEYS, MATERIA_KEYS_BY_ANO, PARCIAL_KEYS, parciaisDaMateria, type AnoKey, type ParcialKey } from "@/lib/unr-curriculum"
+import { ANO_KEYS, MATERIA_KEYS_BY_ANO, PARCIAL_KEYS, parciaisDaMateria, ehSimuladoIntegrador, type AnoKey, type ParcialKey } from "@/lib/unr-curriculum"
 import { getMateriaColor } from "@/lib/materia-colors"
 import { getQuestoesJaRespondidas } from "@/lib/questoes-ja-respondidas"
 import { buscarQuestoesAtivasLeve as getQuestoesAtivasPool, filtrarPoolIds } from "@/lib/questoes-cache"
@@ -474,7 +474,7 @@ export function SimuladosContent() {
                           parcial === "" ? "border-primary bg-primary/10 text-primary" : "border-input text-foreground hover:bg-accent"
                         }`}
                       >
-                        {t.treinamentos.qualquer}
+                        {ehSimuladoIntegrador(selectedMaterias) ? t.treinamentos.integrador : t.treinamentos.qualquer}
                       </button>
                       {parciaisDisponiveis.map((p) => (
                         <button

@@ -47,3 +47,13 @@ export function anoDaMateria(materiaKey: string): AnoKey | undefined {
     MATERIA_KEYS_BY_ANO[ano].includes(materiaKey)
   )
 }
+
+// Clínica Médica do 4º e 5º ano têm uma prova chamada "Integrador" que
+// mistura questões do 1º e 2º parcial — por isso, quando o simulado é só
+// dessas matérias, o botão "Qualquer" (sorteia dos dois parciais juntos)
+// deve se chamar "Integrador" em vez disso.
+const MATERIAS_COM_INTEGRADOR = ["clinica_medica_4", "clinica_medica_5"]
+
+export function ehSimuladoIntegrador(materias: string[]): boolean {
+  return materias.length > 0 && materias.every((m) => MATERIAS_COM_INTEGRADOR.includes(m))
+}
