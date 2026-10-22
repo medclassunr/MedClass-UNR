@@ -57,3 +57,16 @@ const MATERIAS_COM_INTEGRADOR = ["clinica_medica_4", "clinica_medica_5"]
 export function ehSimuladoIntegrador(materias: string[]): boolean {
   return materias.length > 0 && materias.every((m) => MATERIAS_COM_INTEGRADOR.includes(m))
 }
+
+// Matéria "virtual" (não entra em MATERIA_KEYS_BY_ANO, não existe tag real
+// em nenhuma questão) que representa a prova Integrador de Clínica Médica
+// como uma opção própria e independente do ano no formulário de simulado --
+// ao ser escolhida, nem o seletor de Parcial aparece (sempre mistura os dois
+// parciais de ambos os anos) e, na hora de montar o pool de questões, é
+// trocada pelas matérias reais via expandirMateriaIntegrador() antes do
+// filtro (ver handleSubmit em simulados-content.tsx/practice-launcher.tsx).
+export const INTEGRADOR_CM_KEY = "integrador_clinica_medica"
+
+export function expandirMateriaIntegrador(materias: string[]): string[] {
+  return materias.includes(INTEGRADOR_CM_KEY) ? MATERIAS_COM_INTEGRADOR : materias
+}

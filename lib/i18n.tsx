@@ -205,6 +205,7 @@ const pt = {
       urologia: "Urologia",
       medicina_legal: "Medicina Legal",
       ginecologia_obstetricia: "Ginecologia e Obstetrícia",
+      integrador_clinica_medica: "Integrador — Clínica Médica (4º e 5º Ano)",
     } as Record<string, string>,
     disciplinaBase: "Disciplina Base",
     disciplinaBaseLabel: {
@@ -1529,6 +1530,7 @@ const es: typeof pt = {
       urologia: "Urología",
       medicina_legal: "Medicina Legal",
       ginecologia_obstetricia: "Ginecología y Obstetricia",
+      integrador_clinica_medica: "Integrador — Clínica Médica (4º y 5º Año)",
     } as Record<string, string>,
     disciplinaBase: "Disciplina Base",
     disciplinaBaseLabel: {

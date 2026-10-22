@@ -3,7 +3,17 @@
 import { useEffect, useState } from "react"
 import { Loader2, Timer } from "lucide-react"
 import { supabase } from "@/lib/supabase"
-import { ANO_KEYS, MATERIA_KEYS_BY_ANO, PARCIAL_KEYS, parciaisDaMateria, ehSimuladoIntegrador, type AnoKey, type ParcialKey } from "@/lib/unr-curriculum"
+import {
+  ANO_KEYS,
+  MATERIA_KEYS_BY_ANO,
+  PARCIAL_KEYS,
+  parciaisDaMateria,
+  ehSimuladoIntegrador,
+  INTEGRADOR_CM_KEY,
+  expandirMateriaIntegrador,
+  type AnoKey,
+  type ParcialKey,
+} from "@/lib/unr-curriculum"
 import { getMateriaColor } from "@/lib/materia-colors"
 import { getQuestoesJaRespondidas } from "@/lib/questoes-ja-respondidas"
 import { buscarQuestoesAtivasLeve as getQuestoesAtivasPool, filtrarPoolIds } from "@/lib/questoes-cache"
@@ -67,11 +77,18 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
 
   const toggleMateria = (materia: string) => {
     setSelectedMaterias((prev) => {
-      const next = prev.includes(materia) ? prev.filter((m) => m !== materia) : [...prev, materia]
+      const base = prev.filter((m) => m !== INTEGRADOR_CM_KEY)
+      const next = base.includes(materia) ? base.filter((m) => m !== materia) : [...base, materia]
       const disponiveis = next.length > 0 ? new Set(next.flatMap((m) => parciaisDaMateria(m))) : new Set(PARCIAL_KEYS)
       if (parcial && !disponiveis.has(parcial)) setParcial("")
       return next
     })
+  }
+
+  // Ver mesma explicação em simulados-content.tsx.
+  const toggleIntegradorCM = () => {
+    setSelectedMaterias((prev) => (prev.includes(INTEGRADOR_CM_KEY) ? [] : [INTEGRADOR_CM_KEY]))
+    setParcial("")
   }
 
   const materiasFiltro = () =>
@@ -95,8 +112,12 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
     let simuladoId: string | undefined
 
     if (userData.user) {
+      // Integrador Clínica Médica é virtual -- só na hora de montar o pool
+      // vira as 2 matérias reais (ver expandirMateriaIntegrador); o label
+      // e o "areas" salvo continuam com a chave virtual, pra exibir bonito.
+      const materiasParaFiltro = materiasSelecionadas ? expandirMateriaIntegrador(materiasSelecionadas) : undefined
       const pool = await getQuestoesAtivasPool()
-      let poolIds = filtrarPoolIds(pool, { materias: materiasSelecionadas, dificuldade, parcial: parcial || undefined })
+      let poolIds = filtrarPoolIds(pool, { materias: materiasParaFiltro, dificuldade, parcial: parcial || undefined })
       if (apenasIneditas) {
         const jaRespondidas = await getQuestoesJaRespondidas(userData.user.id)
         poolIds = poolIds.filter((id) => !jaRespondidas.has(id))
@@ -182,6 +203,16 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
             >
               {t.treinamentos.todas}
             </button>
+            <button
+              onClick={toggleIntegradorCM}
+              className={`ml-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
+                selectedMaterias.includes(INTEGRADOR_CM_KEY)
+                  ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
+                  : "border-input text-foreground hover:bg-accent"
+              }`}
+            >
+              {t.cronograma.materiaLabel[INTEGRADOR_CM_KEY]}
+            </button>
             <div className="flex flex-wrap gap-2">
               {ANO_KEYS.map((ano) => {
                 const ativo = filtroAno === ano
@@ -247,7 +278,7 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
             </div>
           </div>
 
-          {selectedMaterias.length > 0 && (
+          {selectedMaterias.length > 0 && !selectedMaterias.includes(INTEGRADOR_CM_KEY) && (
             <div className="space-y-2">
               <Label>{t.treinamentos.parcial}</Label>
               <div className="flex gap-2">

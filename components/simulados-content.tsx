@@ -15,7 +15,17 @@ import {
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { IconChip } from "@/components/ui/icon-chip"
-import { ANO_KEYS, MATERIA_KEYS_BY_ANO, PARCIAL_KEYS, parciaisDaMateria, ehSimuladoIntegrador, type AnoKey, type ParcialKey } from "@/lib/unr-curriculum"
+import {
+  ANO_KEYS,
+  MATERIA_KEYS_BY_ANO,
+  PARCIAL_KEYS,
+  parciaisDaMateria,
+  ehSimuladoIntegrador,
+  INTEGRADOR_CM_KEY,
+  expandirMateriaIntegrador,
+  type AnoKey,
+  type ParcialKey,
+} from "@/lib/unr-curriculum"
 import { getMateriaColor } from "@/lib/materia-colors"
 import { getQuestoesJaRespondidas } from "@/lib/questoes-ja-respondidas"
 import { buscarQuestoesAtivasLeve as getQuestoesAtivasPool, filtrarPoolIds } from "@/lib/questoes-cache"
@@ -180,11 +190,24 @@ export function SimuladosContent() {
 
   const toggleMateria = (materia: string) => {
     setSelectedMaterias((prev) => {
-      const next = prev.includes(materia) ? prev.filter((m) => m !== materia) : [...prev, materia]
+      // Tira o Integrador (matéria virtual) da base antes de combinar com
+      // qualquer matéria real escolhida -- não faz sentido misturar os dois.
+      const base = prev.filter((m) => m !== INTEGRADOR_CM_KEY)
+      const next = base.includes(materia) ? base.filter((m) => m !== materia) : [...base, materia]
       const disponiveis = next.length > 0 ? new Set(next.flatMap((m) => parciaisDaMateria(m))) : new Set(PARCIAL_KEYS)
       if (parcial && !disponiveis.has(parcial)) setParcial("")
       return next
     })
+  }
+
+  // Integrador Clínica Médica é uma matéria virtual, separada dos anos:
+  // sempre mistura 1º e 2º parcial de clinica_medica_4 E clinica_medica_5
+  // (ver expandirMateriaIntegrador), por isso é mutuamente exclusiva com
+  // qualquer outra seleção -- escolher ela limpa o resto, e vice-versa
+  // (ver filtro em toggleMateria acima e no botão "Todas").
+  const toggleIntegradorCM = () => {
+    setSelectedMaterias((prev) => (prev.includes(INTEGRADOR_CM_KEY) ? [] : [INTEGRADOR_CM_KEY]))
+    setParcial("")
   }
 
   const parciaisDisponiveis =
@@ -217,9 +240,15 @@ export function SimuladosContent() {
       return
     }
 
+    // Integrador Clínica Médica é virtual (não é tag real de nenhuma
+    // questão) -- vira as 2 matérias reais pra filtrar o pool, sem filtro
+    // de parcial (sempre mistura os dois). O parcial em si já fica "" porque
+    // o seletor nem aparece pra essa matéria (ver toggleIntegradorCM).
+    const materiasParaFiltro = expandirMateriaIntegrador(selectedMaterias)
+
     const activePool = await getQuestoesAtivasPool()
     let poolIds = filtrarPoolIds(activePool, {
-      materias: selectedMaterias.length > 0 ? selectedMaterias : undefined,
+      materias: materiasParaFiltro.length > 0 ? materiasParaFiltro : undefined,
       dificuldade,
       parcial: parcial || undefined,
     })
@@ -397,6 +426,20 @@ export function SimuladosContent() {
                   >
                     {t.treinamentos.todas}
                   </button>
+                  {/* Integrador Clínica Médica -- matéria virtual, separada
+                      dos anos (não some dentro de ano4/ano5): botão próprio,
+                      mutuamente exclusivo com o resto (ver toggleIntegradorCM). */}
+                  <button
+                    type="button"
+                    onClick={toggleIntegradorCM}
+                    className={`mb-2 ml-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
+                      selectedMaterias.includes(INTEGRADOR_CM_KEY)
+                        ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
+                        : "border-input text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {t.cronograma.materiaLabel[INTEGRADOR_CM_KEY]}
+                  </button>
                   <div className="flex flex-wrap gap-2">
                     {ANO_KEYS.map((ano) => {
                       const ativo = filtroAno === ano
@@ -463,7 +506,7 @@ export function SimuladosContent() {
                   </div>
                 </div>
 
-                {selectedMaterias.length > 0 && (
+                {selectedMaterias.length > 0 && !selectedMaterias.includes(INTEGRADOR_CM_KEY) && (
                   <div data-tutorial="simulado-form-parcial">
                     <label className="mb-2 block text-sm font-medium text-foreground">{t.treinamentos.parcial}</label>
                     <div className="flex gap-2">
