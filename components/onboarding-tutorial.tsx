@@ -526,13 +526,25 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
               className={
                 cardEsquerda
                   ? "pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain"
-                  : `pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain sm:left-auto sm:top-auto sm:h-[370px] sm:translate-x-0 sm:bottom-[-14px] ${
+                  // sm:w-[200px] trava a largura máxima da imagem nesse
+                  // breakpoint -- sem isso, as poses mais "largas" (até
+                  // 800x1000px de origem) renderizavam a até ~296px de
+                  // largura com h-[370px] + w-auto, passando por cima dos
+                  // 235px de padding reservados pro texto (ver pl/pr abaixo)
+                  // e cobrindo parte do título/texto -- reproduzível em
+                  // qualquer tela >=640px (sm:), incluindo iPad e celular
+                  // em paisagem, não só desktop.
+                  : `pointer-events-none absolute left-1/2 top-[-165px] h-[215px] w-auto -translate-x-1/2 object-contain sm:left-auto sm:top-auto sm:h-[370px] sm:w-[200px] sm:translate-x-0 sm:bottom-[-14px] ${
                       ladoInvertido ? "sm:right-[-10px]" : "sm:left-[-10px]"
                     }`
               }
             />
 
-            <div className={cardEsquerda ? "relative pt-[40px]" : `relative pt-[40px] sm:pt-0 ${ladoInvertido ? "sm:pr-[235px]" : "sm:pl-[235px]"}`}>
+            {/* pt-[60px] (não 40px) no mobile -- a imagem "estoura" 50px pra
+                dentro do card nesse breakpoint (top:-165px + h:215px), então
+                40px de respiro deixava os últimos ~10px dela sobrepondo o
+                título. */}
+            <div className={cardEsquerda ? "relative pt-[40px]" : `relative pt-[60px] sm:pt-0 ${ladoInvertido ? "sm:pr-[235px]" : "sm:pl-[235px]"}`}>
               <div>
                 {passos.length > 1 && (
                   <p className="text-[11px] font-bold uppercase tracking-wide text-primary">{contador}</p>
