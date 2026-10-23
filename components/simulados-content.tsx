@@ -208,6 +208,9 @@ export function SimuladosContent() {
   const toggleIntegradorCM = () => {
     setSelectedMaterias((prev) => (prev.includes(INTEGRADOR_CM_KEY) ? [] : [INTEGRADOR_CM_KEY]))
     setParcial("")
+    // Fecha qualquer ano que estivesse aberto -- selecionar o Integrador é
+    // exclusivo, não faz sentido continuar mostrando as matérias de um ano.
+    setFiltroAno(null)
   }
 
   const parciaisDisponiveis =
@@ -417,7 +420,10 @@ export function SimuladosContent() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setSelectedMaterias((prev) => (prev.length === ALL_MATERIAS.length ? [] : [...ALL_MATERIAS]))}
+                    onClick={() => {
+                      setSelectedMaterias((prev) => (prev.length === ALL_MATERIAS.length ? [] : [...ALL_MATERIAS]))
+                      setFiltroAno(null)
+                    }}
                     className={`mb-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
                       selectedMaterias.length === ALL_MATERIAS.length
                         ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
@@ -426,37 +432,47 @@ export function SimuladosContent() {
                   >
                     {t.treinamentos.todas}
                   </button>
-                  {/* Integrador Clínica Médica -- matéria virtual, separada
-                      dos anos (não some dentro de ano4/ano5): botão próprio,
-                      mutuamente exclusivo com o resto (ver toggleIntegradorCM). */}
-                  <button
-                    type="button"
-                    onClick={toggleIntegradorCM}
-                    className={`mb-2 ml-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
-                      selectedMaterias.includes(INTEGRADOR_CM_KEY)
-                        ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
-                        : "border-input text-foreground hover:bg-accent"
-                    }`}
-                  >
-                    {t.cronograma.materiaLabel[INTEGRADOR_CM_KEY]}
-                  </button>
+                  {/* Linha dos anos. Os botões de ANO são apenas FILTROS (abrem
+                      a lista de matérias daquele ano logo abaixo) -- por isso o
+                      estado ativo deles usa um destaque NEUTRO (bg-accent), não
+                      o verde de seleção, pra nunca parecer que o ano está
+                      "selecionado" junto com uma matéria ou com o Integrador.
+                      O Integrador Clínica Médica é matéria virtual (seleção de
+                      verdade, verde) e mutuamente exclusiva -- fica entre o 4º e
+                      o 5º ano por ser a prova integradora desses dois anos. */}
                   <div className="flex flex-wrap gap-2">
                     {ANO_KEYS.map((ano) => {
                       const ativo = filtroAno === ano
-                      return (
+                      const botaoAno = (
                         <button
                           key={ano}
                           type="button"
                           onClick={() => setFiltroAno((prev) => (prev === ano ? null : ano))}
                           className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
                             ativo
-                              ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
+                              ? "border-primary/60 bg-accent font-semibold text-foreground"
                               : "border-input text-foreground hover:bg-accent"
                           }`}
                         >
                           {t.cronograma.anoLabel[ano]}
                         </button>
                       )
+                      if (ano !== "ano4") return botaoAno
+                      return [
+                        botaoAno,
+                        <button
+                          key="integrador-cm"
+                          type="button"
+                          onClick={toggleIntegradorCM}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
+                            selectedMaterias.includes(INTEGRADOR_CM_KEY)
+                              ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
+                              : "border-input text-foreground hover:bg-accent"
+                          }`}
+                        >
+                          {t.cronograma.materiaLabel[INTEGRADOR_CM_KEY]}
+                        </button>,
+                      ]
                     })}
                   </div>
                   {filtroAno && (

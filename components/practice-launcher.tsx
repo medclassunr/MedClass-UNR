@@ -89,6 +89,7 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
   const toggleIntegradorCM = () => {
     setSelectedMaterias((prev) => (prev.includes(INTEGRADOR_CM_KEY) ? [] : [INTEGRADOR_CM_KEY]))
     setParcial("")
+    setFiltroAno(null)
   }
 
   const materiasFiltro = () =>
@@ -192,9 +193,10 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
           <div className="space-y-2">
             <Label>{t.practiceLauncher.materiaLabelTodas}</Label>
             <button
-              onClick={() =>
+              onClick={() => {
                 setSelectedMaterias((prev) => (prev.length === ALL_MATERIAS.length ? [] : [...ALL_MATERIAS]))
-              }
+                setFiltroAno(null)
+              }}
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
                 selectedMaterias.length === ALL_MATERIAS.length
                   ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
@@ -203,33 +205,43 @@ export function PracticeLauncher({ open, onOpenChange, onStart }: PracticeLaunch
             >
               {t.treinamentos.todas}
             </button>
-            <button
-              onClick={toggleIntegradorCM}
-              className={`ml-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
-                selectedMaterias.includes(INTEGRADOR_CM_KEY)
-                  ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
-                  : "border-input text-foreground hover:bg-accent"
-              }`}
-            >
-              {t.cronograma.materiaLabel[INTEGRADOR_CM_KEY]}
-            </button>
+            {/* Anos = apenas FILTROS (destaque neutro quando ativo, nunca o
+                verde de seleção). Integrador Clínica Médica é seleção de
+                verdade (verde), exclusiva, entre o 4º e o 5º ano. Mesma lógica
+                e motivo de simulados-content.tsx. */}
             <div className="flex flex-wrap gap-2">
               {ANO_KEYS.map((ano) => {
                 const ativo = filtroAno === ano
-                return (
+                const botaoAno = (
                   <button
                     key={ano}
                     type="button"
                     onClick={() => setFiltroAno((prev) => (prev === ano ? null : ano))}
                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
                       ativo
-                        ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
+                        ? "border-primary/60 bg-accent font-semibold text-foreground"
                         : "border-input text-foreground hover:bg-accent"
                     }`}
                   >
                     {t.cronograma.anoLabel[ano]}
                   </button>
                 )
+                if (ano !== "ano4") return botaoAno
+                return [
+                  botaoAno,
+                  <button
+                    key="integrador-cm"
+                    type="button"
+                    onClick={toggleIntegradorCM}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all hover:shadow-[0_0_18px_rgba(198,255,58,0.45)] ${
+                      selectedMaterias.includes(INTEGRADOR_CM_KEY)
+                        ? "border-transparent bg-gradient-to-r from-[#c6ff3a] to-[#84cc16] text-[#0a1f00]"
+                        : "border-input text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {t.cronograma.materiaLabel[INTEGRADOR_CM_KEY]}
+                  </button>,
+                ]
               })}
             </div>
             {filtroAno && (
