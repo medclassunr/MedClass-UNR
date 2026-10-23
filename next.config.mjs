@@ -42,8 +42,20 @@ const simuladoresHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
 ]
 
+// Versão do build, exposta ao client (process.env.NEXT_PUBLIC_APP_VERSION).
+// Na Vercel usa o hash do commit (muda a cada deploy); localmente cai no
+// timestamp do build. É o que o app compara contra /api/version pra saber
+// que saiu uma atualização nova -- ver hooks/use-app-update.
+const appVersion =
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.NEXT_PUBLIC_APP_VERSION ||
+  String(Date.now())
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
   images: {
     remotePatterns: supabaseHostname
       ? [{ protocol: "https", hostname: supabaseHostname, pathname: "/storage/v1/object/public/**" }]
