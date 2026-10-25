@@ -29,7 +29,11 @@ interface EventoParaAlerta {
 
 function instanteAlvo(ev: EventoParaAlerta, disparo: Disparo): number | null {
   if (!ev.hora) return null
-  const base = new Date(`${ev.data}T${ev.hora}:00-03:00`).getTime()
+  // hora pode vir como "HH:MM" (do formulário) ou "HH:MM:SS" (tipo `time` do
+  // Postgres). Normaliza pra HH:MM antes de montar o instante -- senão a string
+  // ISO fica inválida ("13:10:00:00-03:00") e o Date vira NaN.
+  const hhmm = ev.hora.slice(0, 5)
+  const base = new Date(`${ev.data}T${hhmm}:00-03:00`).getTime()
   if (Number.isNaN(base)) return null
   return disparo === "antes15" ? base - ANTES_MS : base
 }
