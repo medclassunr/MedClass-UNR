@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { recarregarAppAgora } from "@/lib/app-refresh"
 
 // Versão assada no bundle no momento do build (ver next.config.mjs). Muda a
 // cada deploy na Vercel (usa o hash do commit). "dev" localmente.
@@ -53,24 +54,7 @@ export function useAppUpdate() {
 
   const recarregarApp = useCallback(async () => {
     setRecarregando(true)
-    try {
-      if ("serviceWorker" in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations()
-        await Promise.all(regs.map((r) => r.unregister()))
-      }
-      if ("caches" in window) {
-        const chaves = await caches.keys()
-        await Promise.all(chaves.map((k) => caches.delete(k)))
-      }
-    } catch {
-      // Se algo falhar ao limpar, ainda assim força o reload abaixo.
-    }
-    // Cache-bust forte: um param único na URL faz o navegador (inclusive o
-    // WebView do atalho no iOS) tratar como um recurso novo e ignorar o cache
-    // HTTP do documento -- é o que mais se aproxima de um Ctrl+F5.
-    const url = new URL(window.location.href)
-    url.searchParams.set("_v", Date.now().toString())
-    window.location.replace(url.toString())
+    await recarregarAppAgora()
   }, [])
 
   return { atualizacaoDisponivel, recarregando, recarregarApp }

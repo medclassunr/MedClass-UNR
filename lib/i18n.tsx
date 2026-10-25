@@ -1351,6 +1351,16 @@ const pt = {
     alertasCelularIos:
       "No iPhone/iPad, primeiro adicione o app à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá — só assim o iOS permite alertas.",
     alertasCelularNaoSuportado: "Este navegador não suporta alertas no celular.",
+    appVersaoTitulo: "Versão do app",
+    appVersaoDescricao:
+      "Force o carregamento da versão mais recente da plataforma — sem precisar desinstalar e reinstalar o atalho do app.",
+    appVersaoAtual: "Versão atual",
+    appVersaoBuscar: "Buscar atualizações",
+    appVersaoBuscando: "Verificando…",
+    appVersaoBotao: "Atualizar agora",
+    appVersaoAtualizando: "Atualizando…",
+    appVersaoJaAtual: "Você já está na versão mais recente ✓",
+    appVersaoDisponivel: "Saiu uma versão nova! Toque em “Atualizar agora”.",
     weeklySummary: { label: "Resumo semanal por e-mail", description: "Receba um resumo do seu desempenho toda segunda-feira." },
     productUpdates: { label: "Novidades da plataforma", description: "Fique por dentro de novos recursos e conteúdos." },
     publicProfile: { label: "Perfil público", description: "Permitir que outros alunos vejam seu progresso no ranking." },
@@ -2708,6 +2718,16 @@ const es: typeof pt = {
     alertasCelularIos:
       "En iPhone/iPad, primero agregá la app a la Pantalla de Inicio (Compartir → Agregar a Inicio) y abrila desde ahí — solo así iOS permite los alertas.",
     alertasCelularNaoSuportado: "Este navegador no admite alertas en el celular.",
+    appVersaoTitulo: "Versión de la app",
+    appVersaoDescricao:
+      "Forzá la carga de la última versión de la plataforma — sin tener que desinstalar y reinstalar el acceso directo de la app.",
+    appVersaoAtual: "Versión actual",
+    appVersaoBuscar: "Buscar actualizaciones",
+    appVersaoBuscando: "Verificando…",
+    appVersaoBotao: "Actualizar ahora",
+    appVersaoAtualizando: "Actualizando…",
+    appVersaoJaAtual: "Ya estás en la última versión ✓",
+    appVersaoDisponivel: "¡Salió una versión nueva! Tocá “Actualizar ahora”.",
     weeklySummary: { label: "Resumen semanal por e-mail", description: "Recibí un resumen de tu desempeño todos los lunes." },
     productUpdates: { label: "Novedades de la plataforma", description: "Enterate de nuevas funciones y contenidos." },
     publicProfile: { label: "Perfil público", description: "Permitir que otros estudiantes vean tu progreso en el ranking." },

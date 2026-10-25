@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useLanguage } from "@/lib/i18n"
 import { PushToggle } from "@/components/push-toggle"
+import { AtualizarAppSection } from "@/components/atualizar-app-section"
 
 interface ToggleRow {
   key: string
@@ -56,6 +57,7 @@ export function ConfiguracoesContent() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      <AtualizarAppSection />
       <PushToggle />
       <ToggleGroup title={t.configuracoes.notificacoes} rows={notificationRows} />
       <ToggleGroup title={t.configuracoes.alertasEmail} rows={emailRows} />
