@@ -68,6 +68,7 @@ export function CalendarioContent() {
   const [novoEventoAberto, setNovoEventoAberto] = useState(false)
   const [editandoEventoId, setEditandoEventoId] = useState<string | null>(null)
   const [novoTitulo, setNovoTitulo] = useState("")
+  const [novaData, setNovaData] = useState("")
   const [novaHora, setNovaHora] = useState("")
   const [novaDescricao, setNovaDescricao] = useState("")
   const [salvandoEvento, setSalvandoEvento] = useState(false)
@@ -123,6 +124,7 @@ export function CalendarioContent() {
     setNovoEventoAberto(false)
     setEditandoEventoId(null)
     setNovoTitulo("")
+    setNovaData("")
     setNovaHora("")
     setNovaDescricao("")
     setErroNovoEvento(null)
@@ -131,6 +133,21 @@ export function CalendarioContent() {
   const abrirNovoEvento = () => {
     setEditandoEventoId(null)
     setNovoTitulo("")
+    setNovaData(format(diaSelecionado ?? new Date(), "yyyy-MM-dd"))
+    setNovaHora("")
+    setNovaDescricao("")
+    setErroNovoEvento(null)
+    setNovoEventoAberto(true)
+  }
+
+  // Botão de destaque na barra do calendário: abre o modal já no formulário
+  // de criação (começa em hoje, mas a data é editável no próprio formulário).
+  const abrirCriarEventoGlobal = () => {
+    const hoje = new Date()
+    setDiaSelecionado(hoje)
+    setEditandoEventoId(null)
+    setNovoTitulo("")
+    setNovaData(format(hoje, "yyyy-MM-dd"))
     setNovaHora("")
     setNovaDescricao("")
     setErroNovoEvento(null)
@@ -140,6 +157,7 @@ export function CalendarioContent() {
   const abrirEdicaoEvento = (evento: CalendarioEvento) => {
     setEditandoEventoId(evento.id)
     setNovoTitulo(evento.titulo)
+    setNovaData(evento.data)
     setNovaHora(evento.hora ?? "")
     setNovaDescricao(evento.descricao ?? "")
     setErroNovoEvento(null)
@@ -147,9 +165,13 @@ export function CalendarioContent() {
   }
 
   const handleSalvarEventoPessoal = async () => {
-    if (!userId || !diaSelecionado) return
+    if (!userId) return
     if (!novoTitulo.trim()) {
       setErroNovoEvento(t.calendario.novoEventoTituloObrigatorio)
+      return
+    }
+    if (!novaData) {
+      setErroNovoEvento(t.calendario.novoEventoErro)
       return
     }
     setSalvandoEvento(true)
@@ -161,6 +183,7 @@ export function CalendarioContent() {
         .update({
           titulo: novoTitulo.trim(),
           descricao: novaDescricao.trim() || null,
+          data: novaData,
           hora: novaHora || null,
         })
         .eq("id", editandoEventoId)
@@ -182,19 +205,29 @@ export function CalendarioContent() {
         user_id: userId,
         titulo: novoTitulo.trim(),
         descricao: novaDescricao.trim() || null,
-        data: format(diaSelecionado, "yyyy-MM-dd"),
+        data: novaData,
         hora: novaHora || null,
         tipo: "pessoal",
       })
       .select("*")
       .single()
-    setSalvandoEvento(false)
 
     if (error || !data) {
+      setSalvandoEvento(false)
       setErroNovoEvento(t.calendario.novoEventoErro)
       return
     }
     setEventos((prev) => [...prev, data as CalendarioEvento])
+
+    // Todo evento criado já nasce com o ALERTA ATIVADO (pedido do usuário) --
+    // cria o lembrete automaticamente, pra receber o push no celular na hora
+    // e 15 min antes. Se falhar, o evento continua salvo (não bloqueia).
+    const { data: lembrete } = await criarLembrete(userId, data.id)
+    if (lembrete) {
+      setMeusLembretes((prev) => new Map(prev).set(data.id, lembrete.id))
+    }
+
+    setSalvandoEvento(false)
     resetNovoEvento()
   }
 
@@ -307,25 +340,31 @@ export function CalendarioContent() {
           <h2 className="text-2xl font-bold text-gradient-brand sm:text-3xl">{t.calendario.titulo}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{t.calendario.subtitulo}</p>
         </div>
-        <div className="flex items-center gap-1 rounded-lg border border-border p-1">
-          <button
-            type="button"
-            onClick={() => setVisao("mes")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              visao === "mes" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-            }`}
-          >
-            {t.calendario.visaoMes}
-          </button>
-          <button
-            type="button"
-            onClick={() => setVisao("semana")}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              visao === "semana" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-            }`}
-          >
-            {t.calendario.visaoSemana}
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="gradient" size="sm" className="gap-1.5" onClick={abrirCriarEventoGlobal}>
+            <Plus className="h-4 w-4" />
+            {t.calendario.criarEventoBotao}
+          </Button>
+          <div className="flex items-center gap-1 rounded-lg border border-border p-1">
+            <button
+              type="button"
+              onClick={() => setVisao("mes")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                visao === "mes" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              {t.calendario.visaoMes}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVisao("semana")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                visao === "semana" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              {t.calendario.visaoSemana}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -564,9 +603,9 @@ export function CalendarioContent() {
                             ) : (
                               <Bell className="h-5 w-5" />
                             )}
-                            {!lembreteAtivo && (
-                              <span className="text-xs font-bold text-primary">{t.calendario.lembreteCriar}</span>
-                            )}
+                            <span className="text-xs font-bold text-primary">
+                              {lembreteAtivo ? t.calendario.lembreteRemover : t.calendario.lembreteCriar}
+                            </span>
                           </button>
                         )}
                         {evento.user_id === userId && (
@@ -625,9 +664,15 @@ export function CalendarioContent() {
                       placeholder={t.calendario.novoEventoTituloPlaceholder}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">{t.calendario.novoEventoHora}</label>
-                    <Input type="time" value={novaHora} onChange={(e) => setNovaHora(e.target.value)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">{t.calendario.novoEventoData}</label>
+                      <Input type="date" value={novaData} onChange={(e) => setNovaData(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">{t.calendario.novoEventoHora}</label>
+                      <Input type="time" value={novaHora} onChange={(e) => setNovaHora(e.target.value)} />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-foreground">{t.calendario.novoEventoDescricao}</label>
@@ -637,6 +682,12 @@ export function CalendarioContent() {
                       className="min-h-16"
                     />
                   </div>
+                  {!editandoEventoId && (
+                    <p className="flex items-start gap-1.5 rounded-lg bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                      <BellRing className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                      {t.calendario.novoEventoAlertaInfo}
+                    </p>
+                  )}
                   {erroNovoEvento && <p className="text-sm text-destructive">{erroNovoEvento}</p>}
                   <div className="flex items-center justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={resetNovoEvento}>

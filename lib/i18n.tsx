@@ -308,7 +308,7 @@ const pt = {
     cancelar: "Cancelar",
     lembreteCriar: "Ativar alerta",
     lembreteAtivo: "Lembrete ativo",
-    lembreteRemover: "Remover lembrete",
+    lembreteRemover: "Desativar alerta",
     lembreteCriado: "Vamos te lembrar 2 dias antes dessa data.",
     lembretePainelTitulo: "Lembretes de datas",
     verNoCalendario: "Ver no calendário",
@@ -327,6 +327,10 @@ const pt = {
     confirmarExcluirEvento: "Excluir este evento pessoal? Essa ação não pode ser desfeita.",
     meusEventosTitulo: "Meus eventos",
     editarEventoPessoal: "Editar evento pessoal",
+    criarEventoBotao: "Criar evento / anotação",
+    novoEventoData: "Data",
+    novoEventoAlertaInfo:
+      "O alerta já fica ativado: você recebe uma notificação no celular na hora marcada e 15 minutos antes.",
   },
   comingSoon: {
     badge: "Em breve",
@@ -1266,7 +1270,7 @@ const pt = {
       "A agenda real do dia na Faculdade de Ciências Médicas (aulas, práticos, seminários), direto da Bedelía — não é conteúdo de prova, é seu cronograma de cursada de verdade.",
     calendarioTitulo: "Calendario",
     calendarioTexto:
-      "Datas oficiais importantes: inscrições, provas, eventos da comunidade. Diferente do Cronograma (que é sua rotina pessoal) — aqui você pode ativar lembretes ou adicionar seus próprios eventos.",
+      "Aqui ficam as datas oficiais (inscrições, provas, eventos da comunidade) E os seus próprios eventos e anotações — que só você vê, mais ninguém. Toque no botão “Criar evento / anotação” (ou em qualquer dia do calendário) para adicionar o seu: dê um título, escolha a data e, se quiser, a hora. Todo evento que você cria já vem com o ALERTA ATIVADO — você recebe uma notificação no celular na hora marcada e 15 minutos antes (basta ativar os alertas uma vez em Configurações → Alertas no celular). Se não quiser mais ser avisado de um evento, toque em “Desativar alerta”. Você também pode ativar o alerta em qualquer data oficial tocando no sininho dela.",
     mesaOralTitulo: "Mesa Oral",
     mesaOralTexto: "Simulação de prova oral com devolutiva imediata — ainda em desenvolvimento, em breve você vai poder praticar aqui também.",
     menuLateralTitulo: "Menu lateral",
@@ -1675,7 +1679,7 @@ const es: typeof pt = {
     cancelar: "Cancelar",
     lembreteCriar: "Activar alerta",
     lembreteAtivo: "Recordatorio activo",
-    lembreteRemover: "Quitar recordatorio",
+    lembreteRemover: "Desactivar alerta",
     lembreteCriado: "Te vamos a recordar 2 días antes de esa fecha.",
     lembretePainelTitulo: "Recordatorios de fechas",
     verNoCalendario: "Ver en el calendario",
@@ -1694,6 +1698,10 @@ const es: typeof pt = {
     confirmarExcluirEvento: "¿Eliminar este evento personal? Esta acción no se puede deshacer.",
     meusEventosTitulo: "Mis eventos",
     editarEventoPessoal: "Editar evento personal",
+    criarEventoBotao: "Crear evento / anotación",
+    novoEventoData: "Fecha",
+    novoEventoAlertaInfo:
+      "El alerta ya queda activado: recibís una notificación en el celular a la hora marcada y 15 minutos antes.",
   },
   comingSoon: {
     badge: "Próximamente",
@@ -2633,7 +2641,7 @@ const es: typeof pt = {
       "La agenda real del día en la Facultad de Ciencias Médicas (clases, prácticos, seminarios), tomada directo de Bedelía — no es contenido de examen, es tu cronograma de cursada de verdad.",
     calendarioTitulo: "Calendario",
     calendarioTexto:
-      "Fechas oficiales importantes: inscripciones, exámenes, eventos de la comunidad. Distinto del Cronograma (que es tu rutina personal) — acá podés activar recordatorios o agregar tus propios eventos.",
+      "Acá están las fechas oficiales (inscripciones, exámenes, eventos de la comunidad) Y tus propios eventos y anotaciones — que solo vos ves, nadie más. Tocá el botón “Crear evento / anotación” (o cualquier día del calendario) para agregar el tuyo: ponele un título, elegí la fecha y, si querés, la hora. Todo evento que creás ya viene con el ALERTA ACTIVADO — recibís una notificación en el celular a la hora marcada y 15 minutos antes (solo tenés que activar los alertas una vez en Configuración → Alertas en el celular). Si no querés que te avisen más de un evento, tocá “Desactivar alerta”. También podés activar el alerta en cualquier fecha oficial tocando su campanita.",
     mesaOralTitulo: "Mesa Oral",
     mesaOralTexto: "Simulación de examen oral con devolución inmediata — todavía en desarrollo, pronto vas a poder practicar acá también.",
     menuLateralTitulo: "Menú lateral",
