@@ -57,6 +57,36 @@ function textoPush(ev: EventoParaAlerta, disparo: Disparo): PushPayload {
   }
 }
 
+interface AvisoAtividade {
+  id: string
+  user_id: string
+  titulo: string
+  sala: string
+  data: string
+  hora: string
+  antecedencia_min: number
+}
+
+function textoAtividade(a: AvisoAtividade): PushPayload {
+  const quando =
+    a.antecedencia_min === 0
+      ? "¡Empieza ahora!"
+      : a.antecedencia_min === 120
+        ? "Empieza en 2 horas."
+        : a.antecedencia_min === 60
+          ? "Empieza en 1 hora."
+          : a.antecedencia_min === 30
+            ? "Empieza en 30 minutos."
+            : "Empieza en 15 minutos."
+  const sala = a.sala ? ` Aula: ${a.sala}.` : ""
+  return {
+    titulo: a.titulo,
+    mensagem: `${quando}${sala} ¡Prepará tus cosas! 📚`,
+    link: "/dashboard/actividades-unr",
+    tag: `atividade-${a.id}`,
+  }
+}
+
 export async function POST(request: NextRequest) {
   const secret = process.env.PUSH_CRON_SECRET
   if (!secret || request.headers.get("x-cron-secret") !== secret) {
@@ -150,5 +180,53 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, enviados, dispositivosLimpos, pares: pares.size })
+  // --- Avisos de "Actividades en la UNR" (antecedência escolhida pelo aluno) ---
+  const { data: avisosRaw } = await supabase
+    .from("atividades_avisos")
+    .select("id, user_id, titulo, sala, data, hora, antecedencia_min")
+    .is("enviado_em", null)
+    .gte("data", hoje)
+    .lte("data", amanha)
+  const avisos = (avisosRaw ?? []) as AvisoAtividade[]
+
+  for (const a of avisos) {
+    const hhmm = a.hora.slice(0, 5)
+    const base = new Date(`${a.data}T${hhmm}:00-03:00`).getTime()
+    if (Number.isNaN(base)) continue
+    const alvo = base - a.antecedencia_min * 60 * 1000
+    if (!venceuAgora(alvo, agora)) continue
+
+    // Reivindica: marca enviado_em só se ainda estava nulo (dedup + concorrência).
+    const { data: claimed } = await supabase
+      .from("atividades_avisos")
+      .update({ enviado_em: new Date(agora).toISOString() })
+      .eq("id", a.id)
+      .is("enviado_em", null)
+      .select("id")
+    if (!claimed || claimed.length === 0) continue
+
+    const { data: subs } = await supabase
+      .from("push_subscriptions")
+      .select("endpoint, p256dh, auth")
+      .eq("user_id", a.user_id)
+
+    const payload = textoAtividade(a)
+    for (const sub of subs ?? []) {
+      const r = await enviarPush(sub, payload)
+      if (r.ok) enviados++
+      else if (r.expirada) {
+        await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint)
+        dispositivosLimpos++
+      }
+    }
+    await supabase.from("notifications").insert({
+      user_id: a.user_id,
+      titulo: payload.titulo,
+      mensagem: payload.mensagem,
+      tipo: "alerta",
+      link: payload.link,
+    })
+  }
+
+  return NextResponse.json({ ok: true, enviados, dispositivosLimpos, pares: pares.size, avisos: avisos.length })
 }
