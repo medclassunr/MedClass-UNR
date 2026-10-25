@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useLanguage } from "@/lib/i18n"
+import { PushToggle } from "@/components/push-toggle"
+import { PerfilVersaoSection } from "@/components/perfil-versao-section"
 
 const FOTO_MAX_BYTES = 2 * 1024 * 1024
 const FOTO_ACCEPT = "image/png, image/jpeg"
@@ -202,6 +204,9 @@ export function PerfilContent() {
         {saved && <span className="text-sm font-medium text-success">{t.perfil.alteracoesSalvas}</span>}
         {erroSalvar && <span className="text-sm font-medium text-destructive">{erroSalvar}</span>}
       </div>
+
+      <PushToggle />
+      <PerfilVersaoSection />
     </div>
   )
 }

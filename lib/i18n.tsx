@@ -1225,6 +1225,7 @@ const pt = {
     pushNudgeIos:
       "No iPhone/iPad, primeiro adicione o app à Tela de Início (Compartilhar → Adicionar à Tela de Início) e abra por lá — só assim o iOS permite os alertas.",
     pushNudgeAtivado: "Pronto! Alertas ativados neste aparelho ✓",
+    appAtualizadoToast: "App atualizado para a versão mais recente ✅",
     planosTitulo: "Planos Premium",
     planosTexto:
       "Plano Grátis: até 60 questões, o primeiro caso de cada seção de Desafios Clínicos, as 2 primeiras cartas de cada baralho de Flashcards, acesso livre a todas as videoaulas e às suas estatísticas de desempenho — sem prazo de expiração, mas não entra no ranking. Planos Pagos (treino sem limites: simulados ilimitados, banco de questões completo, cronograma personalizado e ranking): Plano Mensal ($ 8.000/mês) ou Plano Trimestral ($ 18.000/trimestre, com desconto e suporte prioritário). Pagamento via Pix. Quer assinar ou tirar dúvidas? Chama no WhatsApp.",
@@ -1387,6 +1388,7 @@ const pt = {
     appVersaoAtualizando: "Atualizando…",
     appVersaoJaAtual: "Você já está na versão mais recente ✓",
     appVersaoDisponivel: "Saiu uma versão nova! Toque em “Atualizar agora”.",
+    appVersaoNova: "Última versão",
     weeklySummary: { label: "Resumo semanal por e-mail", description: "Receba um resumo do seu desempenho toda segunda-feira." },
     productUpdates: { label: "Novidades da plataforma", description: "Fique por dentro de novos recursos e conteúdos." },
     publicProfile: { label: "Perfil público", description: "Permitir que outros alunos vejam seu progresso no ranking." },
@@ -2618,6 +2620,7 @@ const es: typeof pt = {
     pushNudgeIos:
       "En iPhone/iPad, primero agregá la app a la Pantalla de Inicio (Compartir → Agregar a Inicio) y abrila desde ahí — solo así iOS permite los alertas.",
     pushNudgeAtivado: "¡Listo! Alertas activados en este dispositivo ✓",
+    appAtualizadoToast: "App actualizada a la última versión ✅",
     planosTitulo: "Planes Premium",
     planosTexto:
       "Plan Gratis: hasta 60 preguntas, el primer caso de cada sección de Desafíos Clínicos, las 2 primeras tarjetas de cada mazo de Flashcards, acceso libre a todas las videoclases y a tus estadísticas de desempeño — sin fecha de vencimiento, pero no entra en el ranking. Planes Pagos (entrená sin límites: simulacros ilimitados, banco de preguntas completo, cronograma personalizado y ranking): Plan Mensual ($ 8.000/mes) o Plan Trimestral ($ 18.000/trimestre, con descuento y soporte prioritario). Pago por transferencia (CBU/ALIAS). ¿Querés suscribirte o tenés dudas? Escribinos por WhatsApp.",
@@ -2780,6 +2783,7 @@ const es: typeof pt = {
     appVersaoAtualizando: "Actualizando…",
     appVersaoJaAtual: "Ya estás en la última versión ✓",
     appVersaoDisponivel: "¡Salió una versión nueva! Tocá “Actualizar ahora”.",
+    appVersaoNova: "Última versión",
     weeklySummary: { label: "Resumen semanal por e-mail", description: "Recibí un resumen de tu desempeño todos los lunes." },
     productUpdates: { label: "Novedades de la plataforma", description: "Enterate de nuevas funciones y contenidos." },
     publicProfile: { label: "Perfil público", description: "Permitir que otros estudiantes vean tu progreso en el ranking." },

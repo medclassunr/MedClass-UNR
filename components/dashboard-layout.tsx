@@ -6,6 +6,7 @@ import { FreePlanBanner } from "@/components/free-plan-banner"
 import { ClaimPendingPayment } from "@/components/claim-pending-payment"
 import { DashboardAvatarAssistant } from "@/components/dashboard-avatar-assistant"
 import { AppUpdateModal } from "@/components/app-update-modal"
+import { AppUpdatedToast } from "@/components/app-updated-toast"
 import { TutorialProvider } from "@/components/onboarding-tutorial"
 
 interface DashboardLayoutProps {
@@ -28,6 +29,7 @@ export function DashboardLayout({ children, fullWidth }: DashboardLayoutProps) {
           <FreePlanBanner />
           <DashboardAvatarAssistant />
           <AppUpdateModal />
+          <AppUpdatedToast />
           <main className={fullWidth ? "px-4 py-6 sm:px-6 lg:px-8" : "mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"}>
             {children}
           </main>
