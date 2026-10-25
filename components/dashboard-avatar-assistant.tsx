@@ -23,7 +23,6 @@ import { buscarLembretesAtivos } from "@/lib/calendario-lembretes"
 import type { CalendarioLembreteAtivo } from "@/lib/calendario-types"
 import { useLanguage } from "@/lib/i18n"
 import { useTutorial, AVATAR_FRAMES, type TutorialStep } from "@/components/onboarding-tutorial"
-import { useAppUpdate } from "@/hooks/use-app-update"
 
 // Pose fixa (não sorteada) -- este avatar é um ícone fixo/reconhecível,
 // diferente das poses aleatórias do card do tour.
@@ -56,7 +55,6 @@ const FAQ_TOPICOS: { id: string; tituloKey: TutorialStep["tituloKey"]; passos: T
 export function DashboardAvatarAssistant() {
   const { t, lang } = useLanguage()
   const { abrirAjudaPagina } = useTutorial()
-  const { atualizacaoDisponivel, recarregando, recarregarApp } = useAppUpdate()
   const localeDf = lang === "es" ? es : ptBR
 
   const [lembretes, setLembretes] = useState<CalendarioLembreteAtivo[]>([])
@@ -92,7 +90,7 @@ export function DashboardAvatarAssistant() {
   const esconderFraseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mostrarFraseRef = useRef<(comSaudacao: boolean) => void>(() => {})
   mostrarFraseRef.current = (comSaudacao: boolean) => {
-    if (escondido || atualizacaoDisponivel || lembreteAtivo || faqAberto) return
+    if (escondido || lembreteAtivo || faqAberto) return
     const lista = t.tutorialDashboard.frasesMotivacionais
     if (!lista?.length) return
     const h = new Date().getHours()
@@ -115,9 +113,6 @@ export function DashboardAvatarAssistant() {
   }, [])
 
   function aoClicarAvatar() {
-    // Atualização tem prioridade máxima: o balão fica aberto com o botão
-    // "Atualizar agora" até o aluno recarregar; clicar no avatar não dispensa.
-    if (atualizacaoDisponivel) return
     if (lembreteAtivo) {
       setDispensados((prev) => new Set(prev).add(lembreteAtivo.id))
       return
@@ -132,8 +127,8 @@ export function DashboardAvatarAssistant() {
     abrirAjudaPagina(passos)
   }
 
-  const mostrarBalao = !escondido && (atualizacaoDisponivel || !!lembreteAtivo || faqAberto || !!frase)
-  const mostrarBadge = atualizacaoDisponivel || !!lembreteAtivo
+  const mostrarBalao = !escondido && (!!lembreteAtivo || faqAberto || !!frase)
+  const mostrarBadge = !!lembreteAtivo
 
   if (escondido) {
     return (
@@ -157,8 +152,8 @@ export function DashboardAvatarAssistant() {
       <button
         type="button"
         onClick={aoClicarAvatar}
-        aria-label={atualizacaoDisponivel ? t.tutorialDashboard.atualizacaoTitulo : lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
-        title={atualizacaoDisponivel ? t.tutorialDashboard.atualizacaoTitulo : lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
+        aria-label={lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
+        title={lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
         className="animate-avatar-flutua fixed right-4 top-[72px] z-[120] h-24 w-24 overflow-hidden rounded-full border-[3px] border-primary/50 bg-card shadow-xl transition-shadow hover:shadow-primary/40 hover:shadow-2xl"
       >
         <img src={AVATAR_ICONE} alt="" className="h-full w-full object-cover object-top" />
@@ -182,26 +177,7 @@ export function DashboardAvatarAssistant() {
           <div className="relative rounded-2xl border border-border bg-card p-4 shadow-2xl">
             <span className="absolute -top-1.5 right-10 h-3 w-3 rotate-45 border-l border-t border-border bg-card" />
 
-            {atualizacaoDisponivel ? (
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {t.tutorialDashboard.atualizacaoTitulo}
-                </p>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  {t.tutorialDashboard.atualizacaoTexto}
-                </p>
-                <button
-                  type="button"
-                  onClick={recarregarApp}
-                  disabled={recarregando}
-                  className="mt-3 flex w-full items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
-                >
-                  {recarregando
-                    ? t.tutorialDashboard.atualizacaoCarregando
-                    : t.tutorialDashboard.atualizacaoBotao}
-                </button>
-              </div>
-            ) : lembreteAtivo ? (
+            {lembreteAtivo ? (
               <div>
                 <p className="text-sm font-medium text-foreground">
                   {t.calendario.bannerLembrete(
