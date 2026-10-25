@@ -16,7 +16,17 @@ export async function buscarLembretesAtivos(userId: string): Promise<CalendarioL
     .lte("evento.data", format(limite, "yyyy-MM-dd"))
 
   if (error || !data) return []
-  return data as unknown as CalendarioLembreteAtivo[]
+
+  // A query filtra só por DATA (hoje..+2 dias). Aqui descarto os que já
+  // passaram da HORA: um evento de hoje às 13:10 não deve mais aparecer no
+  // avatar depois das 13:10. Eventos sem hora valem o dia inteiro.
+  const agora = Date.now()
+  return (data as unknown as CalendarioLembreteAtivo[]).filter((l) => {
+    const { data: d, hora } = l.evento
+    if (!hora) return true
+    const instante = new Date(`${d}T${hora.slice(0, 5)}:00`).getTime()
+    return Number.isNaN(instante) || instante >= agora
+  })
 }
 
 /** Mapa evento_id -> id do lembrete, pra saber quais eventos o usuário já marcou (qualquer data, não só as ativas). */
