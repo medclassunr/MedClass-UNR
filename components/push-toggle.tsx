@@ -4,22 +4,13 @@ import { useEffect, useState } from "react"
 import { BellRing, BellOff, Smartphone } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { useLanguage } from "@/lib/i18n"
-import { ativarPush, desativarPush, estadoPush, type EstadoPush } from "@/lib/push-client"
-
-function ehIosNaoInstalado(): boolean {
-  if (typeof window === "undefined") return false
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
-  const standalone =
-    (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
-    window.matchMedia("(display-mode: standalone)").matches
-  return ios && !standalone
-}
+import { ativarPush, desativarPush, estadoPush, iosPrecisaInstalar, type EstadoPush } from "@/lib/push-client"
 
 export function PushToggle() {
   const { t } = useLanguage()
   const [estado, setEstado] = useState<EstadoPush | "carregando">("carregando")
   const [ocupado, setOcupado] = useState(false)
-  const iosNaoInstalado = ehIosNaoInstalado()
+  const iosNaoInstalado = iosPrecisaInstalar()
 
   useEffect(() => {
     estadoPush().then(setEstado)

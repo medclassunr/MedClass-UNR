@@ -10,6 +10,18 @@ function suportado(): boolean {
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window
 }
 
+// iOS só permite push quando o app está instalado na Tela de Início (iOS
+// 16.4+). Detecta "é iPhone/iPad e NÃO está rodando como app instalado" pra
+// mostrar o passo a passo em vez do botão de ativar (que não funcionaria).
+export function iosPrecisaInstalar(): boolean {
+  if (typeof window === "undefined") return false
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  const standalone =
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+    window.matchMedia("(display-mode: standalone)").matches
+  return ios && !standalone
+}
+
 // A applicationServerKey precisa ser um Uint8Array -- converte a chave VAPID
 // pública (base64url) pro formato que o PushManager espera.
 function urlBase64ToUint8Array(base64: string): Uint8Array {

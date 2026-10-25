@@ -17,12 +17,13 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { format } from "date-fns"
 import { ptBR, es } from "date-fns/locale"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, BellRing } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { buscarLembretesAtivos } from "@/lib/calendario-lembretes"
 import type { CalendarioLembreteAtivo } from "@/lib/calendario-types"
 import { useLanguage } from "@/lib/i18n"
 import { useTutorial, AVATAR_FRAMES, type TutorialStep } from "@/components/onboarding-tutorial"
+import { ativarPush, estadoPush, iosPrecisaInstalar, type EstadoPush } from "@/lib/push-client"
 
 // Pose fixa (não sorteada) -- este avatar é um ícone fixo/reconhecível,
 // diferente das poses aleatórias do card do tour.
@@ -66,6 +67,11 @@ export function DashboardAvatarAssistant() {
   // Frase motivacional que aparece sozinha de tempos em tempos (balão que
   // some sozinho). Prioridade MAIS BAIXA: nunca cobre atualização/lembrete/FAQ.
   const [frase, setFrase] = useState<string | null>(null)
+  // Estado do push NESTE aparelho -- se não estiver "ativo", o avatar oferece
+  // o botão de ativar (o aluno recebe o aviso no app, mas não no celular).
+  const [pushEstado, setPushEstado] = useState<EstadoPush | "carregando">("carregando")
+  const [pushDispensado, setPushDispensado] = useState(false)
+  const [pushOcupado, setPushOcupado] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -84,13 +90,43 @@ export function DashboardAvatarAssistant() {
     [lembretes, dispensados]
   )
 
+  // Checa o estado do push ao abrir e toda vez que o app volta pro primeiro
+  // plano (pega quando o aluno ativou em Configurações e voltou pra cá).
+  useEffect(() => {
+    const checar = () => estadoPush().then(setPushEstado)
+    checar()
+    const aoVoltar = () => {
+      if (document.visibilityState === "visible") checar()
+    }
+    document.addEventListener("visibilitychange", aoVoltar)
+    return () => document.removeEventListener("visibilitychange", aoVoltar)
+  }, [])
+
+  // Mostra o convite pra ativar push quando dá pra ativar (inativo), quando
+  // está bloqueado (negado) ou quando é iOS que precisa instalar o app. Se o
+  // navegador simplesmente não suporta, não insiste (não adianta).
+  const pushPrecisaAtivar =
+    !pushDispensado &&
+    (pushEstado === "inativo" ||
+      pushEstado === "negado" ||
+      (pushEstado === "nao-suportado" && iosPrecisaInstalar()))
+
+  const aoAtivarPush = async () => {
+    setPushOcupado(true)
+    try {
+      setPushEstado(await ativarPush())
+    } finally {
+      setPushOcupado(false)
+    }
+  }
+
   // Mostra uma frase motivacional: logo depois de abrir o app (com saudação do
   // período) e depois a cada ~4 min, desde que nada mais importante esteja no
   // balão. Reatribuo o ref todo render pra ele sempre ler o estado atual.
   const esconderFraseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mostrarFraseRef = useRef<(comSaudacao: boolean) => void>(() => {})
   mostrarFraseRef.current = (comSaudacao: boolean) => {
-    if (escondido || lembreteAtivo || faqAberto) return
+    if (escondido || pushPrecisaAtivar || lembreteAtivo || faqAberto) return
     const lista = t.tutorialDashboard.frasesMotivacionais
     if (!lista?.length) return
     const h = new Date().getHours()
@@ -127,8 +163,8 @@ export function DashboardAvatarAssistant() {
     abrirAjudaPagina(passos)
   }
 
-  const mostrarBalao = !escondido && (!!lembreteAtivo || faqAberto || !!frase)
-  const mostrarBadge = !!lembreteAtivo
+  const mostrarBalao = !escondido && (faqAberto || pushPrecisaAtivar || !!lembreteAtivo || !!frase)
+  const mostrarBadge = pushPrecisaAtivar || !!lembreteAtivo
 
   if (escondido) {
     return (
@@ -177,17 +213,7 @@ export function DashboardAvatarAssistant() {
           <div className="relative rounded-2xl border border-border bg-card p-4 shadow-2xl">
             <span className="absolute -top-1.5 right-10 h-3 w-3 rotate-45 border-l border-t border-border bg-card" />
 
-            {lembreteAtivo ? (
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {t.calendario.bannerLembrete(
-                    lembreteAtivo.evento.titulo,
-                    format(new Date(`${lembreteAtivo.evento.data}T00:00:00`), "d 'de' MMMM", { locale: localeDf })
-                  )}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">{t.tutorialDashboard.clicarParaFechar}</p>
-              </div>
-            ) : faqAberto ? (
+            {faqAberto ? (
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">
                   {t.tutorialDashboard.faqTitulo}
@@ -204,6 +230,45 @@ export function DashboardAvatarAssistant() {
                     </button>
                   ))}
                 </div>
+              </div>
+            ) : pushPrecisaAtivar ? (
+              <div>
+                <p className="text-sm font-semibold text-foreground">{t.tutorialDashboard.pushNudgeTitulo}</p>
+                {pushEstado === "negado" ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{t.tutorialDashboard.pushNudgeNegado}</p>
+                ) : pushEstado === "nao-suportado" ? (
+                  <p className="mt-1.5 text-xs text-muted-foreground">{t.tutorialDashboard.pushNudgeIos}</p>
+                ) : (
+                  <>
+                    <p className="mt-1.5 text-xs text-muted-foreground">{t.tutorialDashboard.pushNudgeTexto}</p>
+                    <button
+                      type="button"
+                      onClick={aoAtivarPush}
+                      disabled={pushOcupado}
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+                    >
+                      <BellRing className="h-4 w-4" />
+                      {pushOcupado ? t.tutorialDashboard.pushNudgeAtivando : t.tutorialDashboard.pushNudgeBotao}
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPushDispensado(true)}
+                  className="mt-2 w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  {t.tutorialDashboard.pushNudgeDepois}
+                </button>
+              </div>
+            ) : lembreteAtivo ? (
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {t.calendario.bannerLembrete(
+                    lembreteAtivo.evento.titulo,
+                    format(new Date(`${lembreteAtivo.evento.data}T00:00:00`), "d 'de' MMMM", { locale: localeDf })
+                  )}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">{t.tutorialDashboard.clicarParaFechar}</p>
               </div>
             ) : (
               <p className="text-sm font-medium leading-relaxed text-foreground">{frase}</p>
