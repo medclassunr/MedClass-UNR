@@ -1,4 +1,4 @@
-const CACHE_NAME = "medclass-v3"
+const CACHE_NAME = "medclass-v4"
 
 self.addEventListener("install", () => {
   self.skipWaiting()
@@ -54,6 +54,47 @@ self.addEventListener("fetch", (event) => {
     caches.match(request).then((cached) => {
       const fetched = fetch(request).then((response) => cacheIfOk(request, response))
       return cached || fetched
+    })
+  )
+})
+
+// --- Push real no celular (Web Push) ---------------------------------------
+// A rota /api/push/dispatch manda um JSON { titulo, mensagem, link, tag }.
+// Aqui o service worker transforma isso numa notificação do sistema operacional.
+self.addEventListener("push", (event) => {
+  let dados = {}
+  try {
+    dados = event.data ? event.data.json() : {}
+  } catch (e) {
+    dados = { titulo: "MedClass UNR", mensagem: event.data ? event.data.text() : "" }
+  }
+  const titulo = dados.titulo || "MedClass UNR"
+  const options = {
+    body: dados.mensagem || "",
+    icon: "/logo-icon.png",
+    badge: "/logo-icon.png",
+    tag: dados.tag || undefined,
+    data: { link: dados.link || "/calendario" },
+    vibrate: [100, 50, 100],
+    requireInteraction: false,
+  }
+  event.waitUntil(self.registration.showNotification(titulo, options))
+})
+
+// Tocar na notificação: foca uma aba já aberta do app (navegando pro link) ou
+// abre uma nova.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  const link = (event.notification.data && event.notification.data.link) || "/calendario"
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) {
+          if ("navigate" in client) client.navigate(link).catch(() => {})
+          return client.focus()
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(link)
     })
   )
 })

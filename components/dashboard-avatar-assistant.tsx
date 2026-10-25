@@ -14,7 +14,7 @@
 //    mostra a explicação detalhada reaproveitando abrirAjudaPagina() +
 //    o mesmo texto já escrito pro tour (lib/i18n.tsx, tutorialDashboard).
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { format } from "date-fns"
 import { ptBR, es } from "date-fns/locale"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -65,6 +65,9 @@ export function DashboardAvatarAssistant() {
   // Permite esconder o avatar (ex.: se ele atrapalhar algo na tela no
   // mobile) -- a setinha continua visível, fixa na borda, pra reabrir.
   const [escondido, setEscondido] = useState(false)
+  // Frase motivacional que aparece sozinha de tempos em tempos (balão que
+  // some sozinho). Prioridade MAIS BAIXA: nunca cobre atualização/lembrete/FAQ.
+  const [frase, setFrase] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -83,6 +86,34 @@ export function DashboardAvatarAssistant() {
     [lembretes, dispensados]
   )
 
+  // Mostra uma frase motivacional: logo depois de abrir o app (com saudação do
+  // período) e depois a cada ~4 min, desde que nada mais importante esteja no
+  // balão. Reatribuo o ref todo render pra ele sempre ler o estado atual.
+  const esconderFraseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mostrarFraseRef = useRef<(comSaudacao: boolean) => void>(() => {})
+  mostrarFraseRef.current = (comSaudacao: boolean) => {
+    if (escondido || atualizacaoDisponivel || lembreteAtivo || faqAberto) return
+    const lista = t.tutorialDashboard.frasesMotivacionais
+    if (!lista?.length) return
+    const h = new Date().getHours()
+    const saudacao =
+      h < 12 ? t.tutorialDashboard.saudacaoManha : h < 19 ? t.tutorialDashboard.saudacaoTarde : t.tutorialDashboard.saudacaoNoite
+    const sorteada = lista[Math.floor(Math.random() * lista.length)]
+    setFrase(comSaudacao ? `${saudacao} ${sorteada}` : sorteada)
+    if (esconderFraseTimer.current) clearTimeout(esconderFraseTimer.current)
+    esconderFraseTimer.current = setTimeout(() => setFrase(null), 9000)
+  }
+
+  useEffect(() => {
+    const inicial = setTimeout(() => mostrarFraseRef.current(true), 6000)
+    const intervalo = setInterval(() => mostrarFraseRef.current(false), 4 * 60 * 1000)
+    return () => {
+      clearTimeout(inicial)
+      clearInterval(intervalo)
+      if (esconderFraseTimer.current) clearTimeout(esconderFraseTimer.current)
+    }
+  }, [])
+
   function aoClicarAvatar() {
     // Atualização tem prioridade máxima: o balão fica aberto com o botão
     // "Atualizar agora" até o aluno recarregar; clicar no avatar não dispensa.
@@ -91,6 +122,8 @@ export function DashboardAvatarAssistant() {
       setDispensados((prev) => new Set(prev).add(lembreteAtivo.id))
       return
     }
+    // Abrir o FAQ dispensa a frase motivacional que por acaso esteja aberta.
+    setFrase(null)
     setFaqAberto((v) => !v)
   }
 
@@ -99,7 +132,7 @@ export function DashboardAvatarAssistant() {
     abrirAjudaPagina(passos)
   }
 
-  const mostrarBalao = !escondido && (atualizacaoDisponivel || !!lembreteAtivo || faqAberto)
+  const mostrarBalao = !escondido && (atualizacaoDisponivel || !!lembreteAtivo || faqAberto || !!frase)
   const mostrarBadge = atualizacaoDisponivel || !!lembreteAtivo
 
   if (escondido) {
@@ -126,11 +159,11 @@ export function DashboardAvatarAssistant() {
         onClick={aoClicarAvatar}
         aria-label={atualizacaoDisponivel ? t.tutorialDashboard.atualizacaoTitulo : lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
         title={atualizacaoDisponivel ? t.tutorialDashboard.atualizacaoTitulo : lembreteAtivo ? t.tutorialDashboard.clicarParaFechar : t.tutorialDashboard.faqTitulo}
-        className="fixed right-4 top-[72px] z-[120] h-24 w-24 overflow-hidden rounded-full border-[3px] border-primary/50 bg-card shadow-xl transition-transform hover:scale-105"
+        className="animate-avatar-flutua fixed right-4 top-[72px] z-[120] h-24 w-24 overflow-hidden rounded-full border-[3px] border-primary/50 bg-card shadow-xl transition-shadow hover:shadow-primary/40 hover:shadow-2xl"
       >
         <img src={AVATAR_ICONE} alt="" className="h-full w-full object-cover object-top" />
         {mostrarBadge && (
-          <span className="absolute right-1 top-1 h-4 w-4 rounded-full border-2 border-card bg-destructive" />
+          <span className="absolute right-1 top-1 h-4 w-4 animate-pulse rounded-full border-2 border-card bg-destructive" />
         )}
       </button>
 
@@ -145,7 +178,7 @@ export function DashboardAvatarAssistant() {
       </button>
 
       {mostrarBalao && (
-        <div className="fixed right-3 top-[180px] z-[120] w-[min(300px,calc(100vw-1.5rem))]">
+        <div className="animate-avatar-balao fixed right-3 top-[180px] z-[120] w-[min(300px,calc(100vw-1.5rem))]">
           <div className="relative rounded-2xl border border-border bg-card p-4 shadow-2xl">
             <span className="absolute -top-1.5 right-10 h-3 w-3 rotate-45 border-l border-t border-border bg-card" />
 
@@ -178,7 +211,7 @@ export function DashboardAvatarAssistant() {
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">{t.tutorialDashboard.clicarParaFechar}</p>
               </div>
-            ) : (
+            ) : faqAberto ? (
               <div>
                 <p className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">
                   {t.tutorialDashboard.faqTitulo}
@@ -196,6 +229,8 @@ export function DashboardAvatarAssistant() {
                   ))}
                 </div>
               </div>
+            ) : (
+              <p className="text-sm font-medium leading-relaxed text-foreground">{frase}</p>
             )}
           </div>
         </div>

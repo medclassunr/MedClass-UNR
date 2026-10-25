@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useLanguage } from "@/lib/i18n"
+import { PushToggle } from "@/components/push-toggle"
 
 interface ToggleRow {
   key: string
@@ -42,7 +43,6 @@ export function ConfiguracoesContent() {
   const { t } = useLanguage()
 
   const notificationRows: ToggleRow[] = [
-    { key: "push", ...t.configuracoes.push, defaultChecked: true },
     { key: "reminders", ...t.configuracoes.reminders, defaultChecked: true },
   ]
   const emailRows: ToggleRow[] = [
@@ -56,6 +56,7 @@ export function ConfiguracoesContent() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      <PushToggle />
       <ToggleGroup title={t.configuracoes.notificacoes} rows={notificationRows} />
       <ToggleGroup title={t.configuracoes.alertasEmail} rows={emailRows} />
       <ToggleGroup title={t.configuracoes.privacidade} rows={privacyRows} />

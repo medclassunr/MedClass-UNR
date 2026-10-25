@@ -203,3 +203,23 @@
 .animate-streak-glow {
   animation: streak-flame-glow 2.8s ease-in-out infinite;
 }
+
+/* Avatar do dashboard: flutuação suave e contínua, pra parecer "vivo". */
+@keyframes avatar-flutua {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-avatar-flutua {
+  animation: avatar-flutua 3.4s ease-in-out infinite;
+}
+
+/* Entrada do balão de fala/pensamento do avatar. */
+@keyframes avatar-balao-entra {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-avatar-balao {
+  animation: avatar-balao-entra 0.28s ease-out;
+}
