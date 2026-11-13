@@ -78,7 +78,7 @@ function CardArte({ img, onClick, label }: { img: string; onClick: () => void; l
       onMouseMove={handleMove}
       onMouseLeave={handleLeave}
       aria-label={label}
-      className="block w-full [perspective:1000px] focus:outline-none"
+      className="mx-auto block w-full max-w-[520px] [perspective:1000px] focus:outline-none"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
