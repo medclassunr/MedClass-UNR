@@ -1046,6 +1046,9 @@ const pt = {
     } as Record<string, string>,
     localeData: "pt-BR",
     headerTitulo: "Treinamentos",
+    escolhaModoTitulo: "Como você quer praticar?",
+    escolhaModoSubtitulo:
+      "Escolha entre treinar no seu ritmo, sem pressão, ou simular a prova real com tempo e pontuação.",
     headerSubtitulo: "Escolha como quer treinar hoje",
     treinamentoLivreTitulo: "Treinamento Livre",
     treinamentoLivreSubtitulo: "Aprenda no seu ritmo",
@@ -2451,6 +2454,9 @@ const es: typeof pt = {
     } as Record<string, string>,
     localeData: "es-AR",
     headerTitulo: "Entrenamientos",
+    escolhaModoTitulo: "¿Cómo querés practicar?",
+    escolhaModoSubtitulo:
+      "Elegí entrenar a tu ritmo, sin presión, o simular el examen real con tiempo y puntaje.",
     headerSubtitulo: "Elegí cómo querés entrenar hoy",
     treinamentoLivreTitulo: "Entrenamiento Libre",
     treinamentoLivreSubtitulo: "Aprendé a tu ritmo",

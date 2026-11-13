@@ -370,6 +370,14 @@ export function SimuladosContent() {
   return (
     <div className="space-y-6">
       {creating && <GeneratingOverlay message={t.treinamentos.gerandoSimulado} />}
+      {/* Texto explicativo entre o banner e os cards */}
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-foreground sm:text-2xl">{t.treinamentos.escolhaModoTitulo}</h2>
+        <p className="mx-auto mt-1.5 max-w-2xl text-sm text-muted-foreground">
+          {t.treinamentos.escolhaModoSubtitulo}
+        </p>
+      </div>
+
       {/* Entry points: Treinamento Livre x Simulados */}
       <div className="grid gap-4 md:grid-cols-2">
         <CardArte
