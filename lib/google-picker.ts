@@ -92,6 +92,10 @@ export async function abrirPicker(opts: AbrirOpts): Promise<ArquivoPicker | null
     const view = new g.picker.DocsView(g.picker.ViewId.DOCS)
     view.setIncludeFolders(true)
     view.setSelectFolderEnabled(false)
+    // Só "Meu Drive" (arquivos que o admin é dono) -- esconde "Compartilhados
+    // comigo"/pastas de terceiros.
+    view.setOwnedByMe(true)
+    view.setParent("root")
     if (opts.apenasImagens) view.setMimeTypes("image/png,image/jpeg,image/jpg,image/webp")
 
     const builder = new g.picker.PickerBuilder()

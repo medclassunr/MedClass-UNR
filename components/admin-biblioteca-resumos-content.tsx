@@ -385,7 +385,21 @@ export function AdminBibliotecaResumosContent() {
 
       {/* Dialog: novo resumo (escolher arquivo + capa no Drive) */}
       <Dialog open={!!dialogUp} onOpenChange={(o) => !o && setDialogUp(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent
+          className="sm:max-w-md"
+          // Enquanto o Google Picker está aberto, clicar nele dispara o
+          // "interact outside" do Radix e fecharia o diálogo (perdendo a
+          // seleção). Bloqueia o fechamento enquanto o Picker existe no DOM.
+          onPointerDownOutside={(e) => {
+            if (abrindoPicker || document.querySelector(".picker-dialog, .picker-dialog-bg")) e.preventDefault()
+          }}
+          onInteractOutside={(e) => {
+            if (abrindoPicker || document.querySelector(".picker-dialog, .picker-dialog-bg")) e.preventDefault()
+          }}
+          onEscapeKeyDown={(e) => {
+            if (abrindoPicker || document.querySelector(".picker-dialog, .picker-dialog-bg")) e.preventDefault()
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Novo resumo{dialogUp ? ` — ${dialogUp.nome}` : ""}</DialogTitle>
           </DialogHeader>
