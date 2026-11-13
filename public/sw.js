@@ -1,4 +1,4 @@
-const CACHE_NAME = "medclass-v4"
+const CACHE_NAME = "medclass-v5"
 
 self.addEventListener("install", () => {
   self.skipWaiting()
@@ -30,6 +30,12 @@ function cacheIfOk(request, response) {
 self.addEventListener("fetch", (event) => {
   const { request } = event
   if (request.method !== "GET") return
+
+  // NUNCA interceptar requisições de outros domínios (ex.: apis.google.com do
+  // Google Picker, docs.google.com, etc.). Deixar o navegador tratar direto --
+  // interceptar e re-fazer o fetch aqui quebrava scripts cross-origin com
+  // net::ERR_FAILED (o SW "respondia" a requisição e falhava).
+  if (new URL(request.url).origin !== self.location.origin) return
 
   if (request.url.includes("/api/") || request.url.includes("supabase")) {
     event.respondWith(
