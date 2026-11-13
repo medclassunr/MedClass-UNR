@@ -33,13 +33,13 @@ export function PageBanner() {
   if (!banner) return null
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 flex justify-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/banners/${banner.src}.png`}
+        src={`/banners/${banner.src}.webp`}
         alt={banner.alt}
         draggable={false}
-        className="h-auto w-full max-w-4xl select-none"
+        className="mx-auto h-auto w-full max-w-4xl select-none"
         style={{ filter: `drop-shadow(0 0 22px ${banner.cor}99) drop-shadow(0 0 7px ${banner.cor})` }}
       />
     </div>
