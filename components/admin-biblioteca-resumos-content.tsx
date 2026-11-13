@@ -247,8 +247,9 @@ export function AdminBibliotecaResumosContent() {
           </Button>
         </div>
         {conectado && (
-          <p className="mt-2 text-xs text-amber-600">
-            Se o Picker abrir vazio, clique em <strong>Reconectar</strong> e aceite o acesso de leitura ao Drive.
+          <p className="mt-2 text-xs text-muted-foreground">
+            No Picker você navega pelo seu Drive e escolhe o arquivo; ao selecionar, o acesso àquele arquivo é
+            concedido à plataforma.
           </p>
         )}
       </Card>

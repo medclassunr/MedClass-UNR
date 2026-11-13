@@ -20,12 +20,13 @@ export class DriveOAuthError extends Error {
 }
 
 export const DRIVE_SCOPES = [
+  // drive.file (NÃO-restrito): o app só acessa arquivos que ele criou OU que o
+  // admin escolheu no Google Picker. O Picker funciona com esse escopo -- ao
+  // selecionar um arquivo, o Google concede acesso àquele arquivo pro app (daí
+  // o servidor consegue copiar a capa e servir o PDF). Evita o escopo restrito
+  // drive.readonly, que exigiria verificação/CASA do Google (causava o
+  // access_denied "app em fase de testes").
   "https://www.googleapis.com/auth/drive.file",
-  // drive.readonly: necessário pro Google Picker ABRIR o Drive do admin e
-  // deixar ele escolher resumos/capas que já existem lá (com só drive.file o
-  // Picker viria vazio -- o app só enxergaria o que ele mesmo criou). Também
-  // permite o servidor LER o arquivo escolhido (copiar a capa, servir o PDF).
-  "https://www.googleapis.com/auth/drive.readonly",
   "https://www.googleapis.com/auth/userinfo.email",
   "openid",
 ].join(" ")
