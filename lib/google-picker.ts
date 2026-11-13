@@ -54,27 +54,26 @@ function esperar(cond: () => boolean, timeoutMs = 10000): Promise<void> {
   })
 }
 
-const ERRO_BLOQUEADO =
-  "Não foi possível carregar o Google Picker (apis.google.com). Isso quase sempre é um bloqueador de anúncios/rastreamento (uBlock, AdBlock, Brave Shields) ou extensão de privacidade. Desative-o neste site (ou use uma janela anônima sem extensões) e tente de novo."
-
 async function garantirPicker(): Promise<void> {
   if (window.google?.picker) return
+  // Etapa 1: baixar apis.google.com/js/api.js
   await carregarScript("https://apis.google.com/js/api.js").catch(() => {
-    throw new Error(ERRO_BLOQUEADO)
+    throw new Error("[Picker etapa 1] Não consegui baixar apis.google.com/js/api.js (bloqueado por rede/extensão/antivírus).")
   })
-  // api.js pode demorar um instante pra anexar o window.gapi.
+  // Etapa 2: api.js precisa anexar window.gapi
   await esperar(() => !!window.gapi).catch(() => {
-    throw new Error(ERRO_BLOQUEADO)
+    throw new Error("[Picker etapa 2] api.js baixou, mas window.gapi não apareceu.")
   })
+  // Etapa 3: carregar o módulo 'picker' do gapi
   await new Promise<void>((resolve, reject) => {
     window.gapi.load("picker", {
       callback: () => resolve(),
-      onerror: () => reject(new Error("Falha ao inicializar o Google Picker.")),
-      timeout: 10000,
-      ontimeout: () => reject(new Error(ERRO_BLOQUEADO)),
+      onerror: () => reject(new Error("[Picker etapa 3] gapi.load('picker') deu onerror.")),
+      timeout: 12000,
+      ontimeout: () => reject(new Error("[Picker etapa 3] gapi.load('picker') estourou o tempo (módulo do Picker não baixou).")),
     })
   })
-  if (!window.google?.picker) throw new Error("O módulo do Google Picker não carregou.")
+  if (!window.google?.picker) throw new Error("[Picker etapa 4] módulo carregou mas google.picker continua indefinido.")
 }
 
 interface AbrirOpts {
