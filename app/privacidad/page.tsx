@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 }
 
 const ACTUALIZADO = "13 de noviembre de 2026"
-const CONTACTO = "soporte@medclass.com.ar"
+const CONTACTO = "medclassunr@gmail.com"
 
 export default function PoliticaPrivacidad() {
   return (
