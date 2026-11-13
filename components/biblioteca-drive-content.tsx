@@ -27,6 +27,7 @@ import { getAnoColor, getMateriaColor } from "@/lib/materia-colors"
 import { BibliotecaPdfEditor } from "@/components/biblioteca-pdf-editor"
 import { BibliotecaMeusArquivos } from "@/components/biblioteca-meus-arquivos"
 import { BibliotecaSecoesResumos } from "@/components/biblioteca-secoes-resumos"
+import { AlunoMateriais } from "@/components/aluno-materiais"
 import { useTutorial, TOUR_COMPLETO, PASSOS_FERRAMENTAS_BIBLIOTECA } from "@/components/onboarding-tutorial"
 
 interface PastaConfig {
@@ -492,6 +493,9 @@ export function BibliotecaDriveContent() {
     <div className="space-y-8">
       {/* Seções livres (resumos com capa/card 3D, upload via Drive do admin) */}
       <BibliotecaSecoesResumos onOpenChange={setSecaoResumoAberta} />
+
+      {/* Materiais do próprio aluno (upload pela plataforma) */}
+      {!secaoResumoAberta && <AlunoMateriais />}
 
       {/* Biblioteca por matéria (UNR) -- escondida enquanto uma seção está aberta */}
       {!secaoResumoAberta && ANO_KEYS.map((ano: AnoKey) => {

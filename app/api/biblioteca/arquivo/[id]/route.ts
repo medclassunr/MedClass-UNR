@@ -32,6 +32,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // em pastas públicas (biblioteca por matéria UNR já existente).
   const viaOAuth = request.nextUrl.searchParams.get("fonte") === "oauth"
 
+  // escopo=aluno -> material enviado por um aluno. Só o DONO pode baixar
+  // (sem isso, qualquer aluno logado poderia passar o id de outro). Os
+  // resumos do admin (sem escopo) continuam visíveis a todos.
+  if (request.nextUrl.searchParams.get("escopo") === "aluno") {
+    const admin = createAdminClient()
+    const { data: dono } = await admin
+      .from("aluno_materiais")
+      .select("id")
+      .eq("drive_file_id", fileId)
+      .eq("user_id", user.id)
+      .maybeSingle()
+    if (!dono) return NextResponse.json({ error: "Não autorizado" }, { status: 403 })
+  }
+
   try {
     const rangeHeader = request.headers.get("range")
     const [meta, bytes] = await Promise.all([

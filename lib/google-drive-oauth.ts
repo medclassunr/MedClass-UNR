@@ -154,12 +154,20 @@ export function limparCacheToken() {
 
 // ─────────────────────────── Operações no Drive ───────────────────────────
 
-export async function criarPastaDrive(nome: string): Promise<string> {
+export async function criarPastaDrive(nome: string, parentId?: string): Promise<string> {
   const token = await obterAccessToken()
+  const body: { name: string; mimeType: string; parents?: string[] } = {
+    name: nome,
+    mimeType: "application/vnd.google-apps.folder",
+  }
+  // parentId só funciona se a pasta-pai também tiver sido criada pela
+  // plataforma (regra do escopo drive.file) -- por isso a pasta "Materiais dos
+  // Alunos" é criada pelo app, não aponta pra uma pasta feita à mão no Drive.
+  if (parentId) body.parents = [parentId]
   const res = await fetch("https://www.googleapis.com/drive/v3/files?fields=id", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ name: nome, mimeType: "application/vnd.google-apps.folder" }),
+    body: JSON.stringify(body),
   })
   if (!res.ok) {
     const body = await res.text().catch(() => "")
