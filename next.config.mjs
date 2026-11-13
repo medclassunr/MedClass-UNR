@@ -4,16 +4,20 @@ const supabaseHostname = supabaseUrl ? new URL(supabaseUrl).hostname : ""
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://sdk.mercadopago.com http://sdk.mercadopago.com https://http2.mlstatic.com",
+  // apis.google.com: biblioteca do Google Picker (admin escolhe arquivos do Drive).
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://sdk.mercadopago.com http://sdk.mercadopago.com https://http2.mlstatic.com https://apis.google.com",
   "style-src 'self' 'unsafe-inline' https://sdk.mercadopago.com https://fonts.googleapis.com",
-  `img-src 'self' data: blob: ${supabaseUrl} https://*.ytimg.com https://http2.mlstatic.com https://www.mercadopago.com https://www.mercadopago.com.ar`,
+  // *.googleusercontent.com / *.gstatic.com: miniaturas e ícones dentro do Picker.
+  `img-src 'self' data: blob: ${supabaseUrl} https://*.ytimg.com https://http2.mlstatic.com https://www.mercadopago.com https://www.mercadopago.com.ar https://*.googleusercontent.com https://*.gstatic.com https://ssl.gstatic.com`,
   `media-src 'self' ${supabaseUrl}`,
   "font-src 'self' data: https://http2.mlstatic.com https://fonts.gstatic.com",
-  `connect-src 'self' ${supabaseUrl} ${supabaseWs} https://va.vercel-scripts.com https://vitals.vercel-insights.com https://api.mercadopago.com https://events.mercadopago.com https://http2.mlstatic.com https://www.mercadopago.com https://www.mercadopago.com.ar`,
+  // *.googleapis.com / apis.google.com: chamadas do Picker à API do Drive.
+  `connect-src 'self' ${supabaseUrl} ${supabaseWs} https://va.vercel-scripts.com https://vitals.vercel-insights.com https://api.mercadopago.com https://events.mercadopago.com https://http2.mlstatic.com https://www.mercadopago.com https://www.mercadopago.com.ar https://apis.google.com https://content.googleapis.com https://www.googleapis.com`,
   // 'self' é necessário pra embutir os simuladores de Hospital Simulação
   // (iframe same-origin pra /simuladores/*.html) -- sem isso o navegador
   // bloqueia a página de embutir seu próprio iframe.
-  "frame-src 'self' https://www.youtube-nocookie.com https://www.mercadopago.com https://www.mercadopago.com.ar https://bins.mercadopago.com",
+  // docs.google.com/drive.google.com: o Picker renderiza sua UI num iframe.
+  "frame-src 'self' https://www.youtube-nocookie.com https://www.mercadopago.com https://www.mercadopago.com.ar https://bins.mercadopago.com https://docs.google.com https://drive.google.com",
   "object-src 'none'",
 ].join("; ")
 

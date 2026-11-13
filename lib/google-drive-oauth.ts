@@ -21,6 +21,11 @@ export class DriveOAuthError extends Error {
 
 export const DRIVE_SCOPES = [
   "https://www.googleapis.com/auth/drive.file",
+  // drive.readonly: necessário pro Google Picker ABRIR o Drive do admin e
+  // deixar ele escolher resumos/capas que já existem lá (com só drive.file o
+  // Picker viria vazio -- o app só enxergaria o que ele mesmo criou). Também
+  // permite o servidor LER o arquivo escolhido (copiar a capa, servir o PDF).
+  "https://www.googleapis.com/auth/drive.readonly",
   "https://www.googleapis.com/auth/userinfo.email",
   "openid",
 ].join(" ")
