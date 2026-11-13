@@ -8,6 +8,7 @@ import { DashboardAvatarAssistant } from "@/components/dashboard-avatar-assistan
 import { AppUpdateModal } from "@/components/app-update-modal"
 import { AppUpdatedToast } from "@/components/app-updated-toast"
 import { TutorialProvider } from "@/components/onboarding-tutorial"
+import { PageBanner } from "@/components/page-banner"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -31,6 +32,7 @@ export function DashboardLayout({ children, fullWidth }: DashboardLayoutProps) {
           <AppUpdateModal />
           <AppUpdatedToast />
           <main className={fullWidth ? "px-4 py-6 sm:px-6 lg:px-8" : "mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"}>
+            <PageBanner />
             {children}
           </main>
         </div>
