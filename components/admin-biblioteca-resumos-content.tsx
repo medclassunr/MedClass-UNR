@@ -8,7 +8,6 @@ import {
   ChevronRight,
   CloudOff,
   FileUp,
-  FolderPlus,
   ImageIcon,
   Loader2,
   Plus,
@@ -72,8 +71,6 @@ export function AdminBibliotecaResumosContent() {
   const [resumos, setResumos] = useState<ResumoUP[]>([])
   const [loadingMateria, setLoadingMateria] = useState(false)
 
-  const [novaUp, setNovaUp] = useState("")
-  const [criandoUp, setCriandoUp] = useState(false)
 
   // Dialog de novo resumo
   const [dialogUp, setDialogUp] = useState<UP | null>(null)
@@ -127,23 +124,27 @@ export function AdminBibliotecaResumosContent() {
     carregarMateria(materiaKey)
   }
 
-  const criarUp = async () => {
-    const nome = novaUp.trim()
-    if (!nome || !materia) return
-    setCriandoUp(true)
-    const ordem = ups.length
-    const { error } = await supabase.from("biblioteca_up").insert({ materia_key: materia, nome, ordem })
-    setCriandoUp(false)
-    if (error) return alert("Erro ao criar a UP.")
-    setNovaUp("")
-    carregarMateria(materia)
-  }
-
-  const removerUp = async (up: UP) => {
-    if (!confirm(`Remover a UP "${up.nome}" e todos os resumos dela? Os arquivos continuam no seu Drive.`)) return
-    const { error } = await supabase.from("biblioteca_up").delete().eq("id", up.id)
-    if (error) return alert("Erro ao remover a UP.")
-    if (materia) carregarMateria(materia)
+  // Resumos vão DIRETO na matéria (sem pasta/UP visível). Internamente ainda há
+  // 1 contêiner por matéria (tabela biblioteca_up), criado sob demanda e
+  // invisível pro admin -- assim não precisou mudar o schema.
+  const abrirAdicionarResumo = async () => {
+    if (!materia) return
+    let up = ups[0] as UP | undefined
+    if (!up) {
+      const { data, error } = await supabase
+        .from("biblioteca_up")
+        .insert({ materia_key: materia, nome: "Resumos", ordem: 0 })
+        .select("*")
+        .single()
+      if (error || !data) return alert("Erro ao preparar a matéria.")
+      up = data as UP
+      setUps([up])
+    }
+    setDialogUp(up)
+    setTitulo("")
+    setArquivo(null)
+    setCapa(null)
+    setErroDialog(null)
   }
 
   // ─────────── Picker (arquivo e capa) ───────────
@@ -166,14 +167,6 @@ export function AdminBibliotecaResumosContent() {
     } finally {
       setAbrindoPicker(false)
     }
-  }
-
-  const abrirDialogResumo = (up: UP) => {
-    setDialogUp(up)
-    setTitulo("")
-    setArquivo(null)
-    setCapa(null)
-    setErroDialog(null)
   }
 
   const salvarResumo = async () => {
@@ -294,93 +287,68 @@ export function AdminBibliotecaResumosContent() {
             <ArrowLeft className="h-4 w-4" />
             Todas as matérias
           </button>
-          <h2 className="text-lg font-semibold text-foreground">{materiaLabel(materia)}</h2>
-
-          {/* Criar UP */}
-          <Card className="border border-border bg-card p-4">
-            <Label className="text-sm font-medium text-foreground">Nova UP</Label>
-            <p className="mb-2 text-xs text-muted-foreground">Ex.: &quot;UP1&quot;, &quot;UP2 - Cardiologia&quot;.</p>
-            <div className="flex gap-2">
-              <Input
-                value={novaUp}
-                onChange={(e) => setNovaUp(e.target.value)}
-                placeholder="Nome da UP"
-                onKeyDown={(e) => e.key === "Enter" && criarUp()}
-              />
-              <Button onClick={criarUp} disabled={criandoUp || !novaUp.trim()}>
-                {criandoUp ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderPlus className="h-4 w-4" />}
-                Criar
-              </Button>
-            </div>
-          </Card>
-
-          {/* Lista de UPs */}
-          {loadingMateria ? (
-            <div className="flex items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Carregando...
-            </div>
-          ) : ups.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma UP criada ainda.</p>
-          ) : (
-            <div className="space-y-4">
-              {ups.map((up) => {
-                const cards = resumos.filter((r) => r.up_id === up.id)
-                return (
-                  <Card key={up.id} className="border border-border bg-card p-4">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <h3 className="font-semibold text-foreground">{up.nome}</h3>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => abrirDialogResumo(up)} disabled={!conectado}>
-                          <Plus className="h-4 w-4" />
-                          Resumo
-                        </Button>
-                        <button
-                          type="button"
-                          onClick={() => removerUp(up)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                          title="Remover UP"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                    {cards.length === 0 ? (
-                      <p className="py-3 text-center text-xs text-muted-foreground">Nenhum resumo nessa UP ainda.</p>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                        {cards.map((r) => (
-                          <div key={r.id} className="overflow-hidden rounded-xl border border-border bg-background">
-                            <div className="relative aspect-square bg-muted">
-                              {capaUrl(r.capa_path) ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={capaUrl(r.capa_path)!} alt={r.titulo} className="h-full w-full object-cover" />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                                  sem capa
-                                </div>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => removerResumo(r)}
-                                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-destructive"
-                                title="Remover"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                            <div className="p-2">
-                              <p className="line-clamp-2 text-xs font-medium text-foreground">{r.titulo}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-                )
-              })}
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground">{materiaLabel(materia)}</h2>
+            <Button size="sm" onClick={abrirAdicionarResumo} disabled={!conectado}>
+              <Plus className="h-4 w-4" />
+              Adicionar resumo
+            </Button>
+          </div>
+          {!conectado && (
+            <p className="text-xs text-amber-600">Conecte o Google Drive acima pra poder adicionar resumos.</p>
           )}
+
+          {/* Resumos da matéria (direto, sem pasta/UP) */}
+          {(() => {
+            const cards = resumos.filter((r) => ups.some((u) => u.id === r.up_id))
+            if (loadingMateria) {
+              return (
+                <div className="flex items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Carregando...
+                </div>
+              )
+            }
+            if (cards.length === 0) {
+              return (
+                <Card className="border border-dashed border-border bg-card p-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum resumo nessa matéria ainda. Clique em <strong>Adicionar resumo</strong> pra escolher o
+                    arquivo e a capa no seu Drive.
+                  </p>
+                </Card>
+              )
+            }
+            return (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {cards.map((r) => (
+                  <div key={r.id} className="overflow-hidden rounded-xl border border-border bg-background">
+                    <div className="relative aspect-square bg-muted">
+                      {capaUrl(r.capa_path) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={capaUrl(r.capa_path)!} alt={r.titulo} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                          sem capa
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removerResumo(r)}
+                        className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-destructive"
+                        title="Remover"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <div className="p-2">
+                      <p className="line-clamp-2 text-xs font-medium text-foreground">{r.titulo}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -406,12 +374,7 @@ export function AdminBibliotecaResumosContent() {
                 </span>
                 Novo resumo
               </DialogTitle>
-              {dialogUp && (
-                <p className="pl-[2.9rem] text-sm text-muted-foreground">
-                  {materia ? `${materiaLabel(materia)} · ` : ""}
-                  {dialogUp.nome}
-                </p>
-              )}
+              {materia && <p className="pl-[2.9rem] text-sm text-muted-foreground">{materiaLabel(materia)}</p>}
             </DialogHeader>
           </div>
 
