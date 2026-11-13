@@ -504,6 +504,8 @@ const pt = {
     remover: "Remover",
     confirmarRemover: "Remover esse arquivo? Essa ação não pode ser desfeita.",
     nenhumArquivoProprio: "Você ainda não enviou nenhum arquivo nessa matéria.",
+    secoesTitulo: "Resumos",
+    nenhumResumoSecao: "Nenhum resumo nessa seção ainda.",
   },
   resumosGrid: {
     carregando: "Carregando...",
@@ -1899,6 +1901,8 @@ const es: typeof pt = {
     remover: "Quitar",
     confirmarRemover: "¿Quitar este archivo? Esta acción no se puede deshacer.",
     nenhumArquivoProprio: "Todavía no subiste ningún archivo en esta materia.",
+    secoesTitulo: "Resúmenes",
+    nenhumResumoSecao: "Todavía no hay resúmenes en esta sección.",
   },
   resumosGrid: {
     carregando: "Cargando...",

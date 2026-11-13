@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase-admin"
 import { baixarBytesArquivo, obterMetadadosArquivo, GoogleDriveError } from "@/lib/google-drive"
+import { baixarBytesOAuth, obterMetadadosOAuth, DriveOAuthError } from "@/lib/google-drive-oauth"
 
 // Proxy de download/visualização: o aluno nunca vê uma URL drive.google.com
 // e o arquivo nunca é copiado pro nosso Storage -- os bytes passam direto
@@ -26,12 +27,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { id: fileId } = await params
   const modo = request.nextUrl.searchParams.get("modo") === "inline" ? "inline" : "download"
+  // fonte=oauth -> arquivo PRIVADO no Drive do admin (seções/resumos novos),
+  // baixado com a conta conectada via OAuth. Sem isso (padrão), usa a API Key
+  // em pastas públicas (biblioteca por matéria UNR já existente).
+  const viaOAuth = request.nextUrl.searchParams.get("fonte") === "oauth"
 
   try {
     const rangeHeader = request.headers.get("range")
     const [meta, bytes] = await Promise.all([
-      obterMetadadosArquivo(fileId),
-      baixarBytesArquivo(fileId, rangeHeader),
+      viaOAuth ? obterMetadadosOAuth(fileId) : obterMetadadosArquivo(fileId),
+      viaOAuth ? baixarBytesOAuth(fileId, rangeHeader) : baixarBytesArquivo(fileId, rangeHeader),
     ])
 
     const headers = new Headers()
@@ -63,7 +68,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return new NextResponse(bytes.body, { headers })
   } catch (erro) {
-    if (erro instanceof GoogleDriveError) {
+    if (erro instanceof GoogleDriveError || erro instanceof DriveOAuthError) {
       return NextResponse.json({ error: erro.message }, { status: erro.status })
     }
     console.error("[biblioteca/arquivo]", erro)

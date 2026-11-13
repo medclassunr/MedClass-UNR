@@ -26,6 +26,7 @@ import { tiposDaMateria, type TipoBiblioteca } from "@/lib/biblioteca-tipos"
 import { getAnoColor, getMateriaColor } from "@/lib/materia-colors"
 import { BibliotecaPdfEditor } from "@/components/biblioteca-pdf-editor"
 import { BibliotecaMeusArquivos } from "@/components/biblioteca-meus-arquivos"
+import { BibliotecaSecoesResumos } from "@/components/biblioteca-secoes-resumos"
 import { useTutorial, TOUR_COMPLETO, PASSOS_FERRAMENTAS_BIBLIOTECA } from "@/components/onboarding-tutorial"
 
 interface PastaConfig {
@@ -106,6 +107,9 @@ export function BibliotecaDriveContent() {
   const [baixando, setBaixando] = useState<{ id: string; percent: number | null } | null>(null)
   const [visualizando, setVisualizando] = useState<DriveArquivo | null>(null)
   const [tokenAtual, setTokenAtual] = useState<string | null>(null)
+  // Seção livre aberta: esconde a biblioteca por matéria enquanto o aluno
+  // navega dentro de uma seção de resumos.
+  const [secaoResumoAberta, setSecaoResumoAberta] = useState(false)
 
   useEffect(() => {
     authedFetch("/api/biblioteca/pastas")
@@ -486,7 +490,11 @@ export function BibliotecaDriveContent() {
 
   return (
     <div className="space-y-8">
-      {ANO_KEYS.map((ano: AnoKey) => {
+      {/* Seções livres (resumos com capa/card 3D, upload via Drive do admin) */}
+      <BibliotecaSecoesResumos onOpenChange={setSecaoResumoAberta} />
+
+      {/* Biblioteca por matéria (UNR) -- escondida enquanto uma seção está aberta */}
+      {!secaoResumoAberta && ANO_KEYS.map((ano: AnoKey) => {
         const cor = getAnoColor(ano)
         const keys = MATERIA_KEYS_BY_ANO[ano].filter(pastaConfigurada)
         if (keys.length === 0) return null
@@ -502,7 +510,7 @@ export function BibliotecaDriveContent() {
           </section>
         )
       })}
-      {(() => {
+      {!secaoResumoAberta && (() => {
         const keys = (DISCIPLINA_BASE_KEYS as readonly string[]).filter(pastaConfigurada)
         if (keys.length === 0) return null
         return (
