@@ -3,18 +3,14 @@
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
-  ArrowRight,
-  BookOpen,
   CheckCircle2,
   Eye,
   Loader2,
   Play,
   RotateCcw,
-  Target,
   Trash2,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
-import { IconChip } from "@/components/ui/icon-chip"
 import {
   ANO_KEYS,
   MATERIA_KEYS_BY_ANO,
@@ -41,7 +37,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { SimuladoPlayer, type SimuladoConfig } from "@/components/simulado-player"
 import { PracticeLauncher } from "@/components/practice-launcher"
@@ -49,6 +44,59 @@ import { GeneratingOverlay } from "@/components/generating-overlay"
 import { Pagination, PAGE_SIZE } from "@/components/pagination"
 import { useLanguage } from "@/lib/i18n"
 import { useTutorial, PASSOS_CRIAR_SIMULADO, TOUR_COMPLETO } from "@/components/onboarding-tutorial"
+
+const INCLINACAO_CARD = 9 // graus do tilt 3D dos cards de entrada
+
+// Card de entrada (Entrenamiento Libre / Simulacros) usando a arte pronta
+// (título, bullets e botão já na imagem). Clicável, com movimento 3D seguindo
+// o mouse e glow neon verde atrás (drop-shadow segue o formato do PNG).
+function CardArte({ img, onClick, label }: { img: string; onClick: () => void; label: string }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0 })
+  const [hover, setHover] = useState(false)
+  const COR = "#84cc16"
+
+  const handleMove = (e: React.MouseEvent) => {
+    const el = ref.current
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    const px = (e.clientX - r.left) / r.width
+    const py = (e.clientY - r.top) / r.height
+    setTilt({ rx: (0.5 - py) * INCLINACAO_CARD * 2, ry: (px - 0.5) * INCLINACAO_CARD * 2 })
+    setHover(true)
+  }
+  const handleLeave = () => {
+    setTilt({ rx: 0, ry: 0 })
+    setHover(false)
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      aria-label={label}
+      className="block w-full [perspective:1000px] focus:outline-none"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={img}
+        alt={label}
+        draggable={false}
+        className="h-auto w-full select-none transition-[transform,filter] duration-150 ease-out will-change-transform"
+        style={{
+          transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${hover ? 1.02 : 1})`,
+          transformStyle: "preserve-3d",
+          filter: hover
+            ? `drop-shadow(0 0 28px ${COR}aa) drop-shadow(0 0 10px ${COR})`
+            : `drop-shadow(0 0 10px ${COR}55)`,
+        }}
+      />
+    </button>
+  )
+}
 
 interface Simulado {
   id: string
@@ -324,40 +372,18 @@ export function SimuladosContent() {
       {creating && <GeneratingOverlay message={t.treinamentos.gerandoSimulado} />}
       {/* Entry points: Treinamento Livre x Simulados */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="relative flex flex-col justify-between overflow-hidden border-0 bg-gradient-to-br from-[#c6ff3a] to-[#84cc16] p-6 text-[#0a1f00]">
-          <BookOpen className="pointer-events-none absolute -bottom-6 -right-6 h-40 w-40 rotate-[-12deg] text-[#0a1f00]/10" strokeWidth={1.5} />
-          <div className="relative">
-            <IconChip icon={BookOpen} className="bg-[#0a1f00]/10" iconClassName="text-[#0a1f00]" />
-            <h3 className="mt-4 text-2xl font-bold">{t.treinamentos.treinamentoLivreTitulo}</h3>
-            <p className="text-sm text-[#0a1f00]/70">{t.treinamentos.treinamentoLivreSubtitulo}</p>
-            <ul className="mt-4 space-y-2 text-sm text-[#0a1f00]/80">
-              <li>• {t.treinamentos.treinamentoLivreItem1}</li>
-              <li>• {t.treinamentos.treinamentoLivreItem2}</li>
-              <li>• {t.treinamentos.treinamentoLivreItem3}</li>
-            </ul>
-          </div>
-          <Button
-            variant="secondary"
-            className="relative mt-6 w-full justify-between rounded-full bg-[#0a1f00]/10 text-[#0a1f00] hover:bg-[#0a1f00]/15"
-            onClick={() => setPracticeOpen(true)}
-          >
-            {t.treinamentos.iniciarTreinamentoLivre}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </Card>
+        <CardArte
+          img="/cards/entrenamiento-libre.webp"
+          onClick={() => setPracticeOpen(true)}
+          label={t.treinamentos.iniciarTreinamentoLivre}
+        />
 
-        <Card className="relative flex flex-col justify-between overflow-hidden border-0 bg-gradient-to-br from-[#c6ff3a] to-[#84cc16] p-6 text-[#0a1f00]">
-          <Target className="pointer-events-none absolute -bottom-6 -right-6 h-40 w-40 rotate-[12deg] text-[#0a1f00]/10" strokeWidth={1.5} />
-          <div className="relative">
-            <IconChip icon={Target} className="bg-[#0a1f00]/10" iconClassName="text-[#0a1f00]" />
-            <h3 className="mt-4 text-2xl font-bold">{t.treinamentos.simuladosTitulo}</h3>
-            <p className="text-sm text-[#0a1f00]/70">{t.treinamentos.simuladosSubtitulo}</p>
-            <ul className="mt-4 space-y-2 text-sm text-[#0a1f00]/80">
-              <li>• {t.treinamentos.simuladosItem1}</li>
-              <li>• {t.treinamentos.simuladosItem2}</li>
-              <li>• {t.treinamentos.simuladosItem3}</li>
-            </ul>
-          </div>
+        <div className="relative">
+          <CardArte
+            img="/cards/simulacros.webp"
+            onClick={() => setOpen(true)}
+            label={t.treinamentos.criarSimulado}
+          />
           <Dialog
             open={open}
             onOpenChange={(v) => {
@@ -365,12 +391,6 @@ export function SimuladosContent() {
               if (!v) resetForm()
             }}
           >
-            <DialogTrigger asChild>
-              <Button variant="secondary" className="relative mt-6 w-full justify-between rounded-full bg-[#0a1f00]/10 text-[#0a1f00] hover:bg-[#0a1f00]/15">
-                {t.treinamentos.criarSimulado}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
             <DialogContent
               // Com o tutorial rodando, o cartão de explicação fica preso
               // na vertical à esquerda da tela (cardNaEsquerda, ver
@@ -604,7 +624,7 @@ export function SimuladosContent() {
               </form>
             </DialogContent>
           </Dialog>
-        </Card>
+        </div>
       </div>
 
       {/* Simulados List */}
