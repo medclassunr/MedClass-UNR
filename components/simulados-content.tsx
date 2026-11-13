@@ -322,12 +322,6 @@ export function SimuladosContent() {
   return (
     <div className="space-y-6">
       {creating && <GeneratingOverlay message={t.treinamentos.gerandoSimulado} />}
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gradient-brand">{t.treinamentos.headerTitulo}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t.treinamentos.headerSubtitulo}</p>
-      </div>
-
       {/* Entry points: Treinamento Livre x Simulados */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="relative flex flex-col justify-between overflow-hidden border-0 bg-gradient-to-br from-[#c6ff3a] to-[#84cc16] p-6 text-[#0a1f00]">

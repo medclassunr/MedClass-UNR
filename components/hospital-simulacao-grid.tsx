@@ -100,11 +100,6 @@ export function HospitalSimulacaoGrid() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">{t.hospitalSimulacaoGrid.titulo}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t.hospitalSimulacaoGrid.subtitulo}</p>
-      </div>
-
       <Tabs defaultValue="ano4" className="gap-6">
         <TabsList className="border border-border bg-card p-1">
           <TabsTrigger

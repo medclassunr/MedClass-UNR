@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Crown, Loader2, Medal, Trophy } from "lucide-react"
+import { Crown, Loader2, Medal } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -96,13 +96,6 @@ export function RankingContent() {
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       <div className="space-y-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="flex items-center gap-2.5 text-xl font-bold text-foreground">
-              <IconChip icon={Trophy} size="sm" className="bg-gradient-to-br from-amber-400 to-yellow-600 shadow-amber-900/30" />
-              {t.ranking.titulo}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t.ranking.subtitulo}</p>
-          </div>
           <div className="w-full sm:w-56">
             <label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t.ranking.filtroMateria}</label>
             <Select value={materiaFiltro} onValueChange={setMateriaFiltro}>
