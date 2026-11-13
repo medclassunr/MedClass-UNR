@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import {
   ArrowLeft,
   CheckCircle2,
+  ChevronRight,
   CloudOff,
   FileUp,
   FolderPlus,
@@ -384,71 +385,139 @@ export function AdminBibliotecaResumosContent() {
       )}
 
       {/* Dialog: novo resumo (escolher arquivo + capa no Drive) */}
-      <Dialog open={!!dialogUp} onOpenChange={(o) => !o && setDialogUp(null)}>
-        <DialogContent
-          className="sm:max-w-md"
-          // Enquanto o Google Picker está aberto, clicar nele dispara o
-          // "interact outside" do Radix e fecharia o diálogo (perdendo a
-          // seleção). Bloqueia o fechamento enquanto o Picker existe no DOM.
-          onPointerDownOutside={(e) => {
-            if (abrindoPicker || document.querySelector(".picker-dialog, .picker-dialog-bg")) e.preventDefault()
-          }}
-          onInteractOutside={(e) => {
-            if (abrindoPicker || document.querySelector(".picker-dialog, .picker-dialog-bg")) e.preventDefault()
-          }}
-          onEscapeKeyDown={(e) => {
-            if (abrindoPicker || document.querySelector(".picker-dialog, .picker-dialog-bg")) e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Novo resumo{dialogUp ? ` — ${dialogUp.nome}` : ""}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Título</Label>
-              <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex.: Insuficiência Cardíaca" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Arquivo (do Drive)</Label>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start"
-                disabled={abrindoPicker}
-                onClick={async () => {
-                  const f = await escolher(false)
-                  if (f) setArquivo(f)
-                }}
-              >
-                {abrindoPicker ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
-                {arquivo ? arquivo.name : "Escolher arquivo no Drive"}
-              </Button>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Capa (imagem do Drive, opcional)</Label>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start"
-                disabled={abrindoPicker}
-                onClick={async () => {
-                  const f = await escolher(true)
-                  if (f) setCapa(f)
-                }}
-              >
-                {abrindoPicker ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-                {capa ? capa.name : "Escolher capa no Drive"}
-              </Button>
-            </div>
-            {erroDialog && <p className="text-xs text-destructive">{erroDialog}</p>}
+      {/* Enquanto o Picker está aberto (abrindoPicker), o diálogo é ESCONDIDO
+          (open=false). O Radix, quando aberto, põe pointer-events:none no body
+          e trava o scroll -- e o Picker é renderizado no body, então ficava
+          sem cliques e cortado no topo. Escondendo o diálogo, o Picker aparece
+          numa página limpa; ao escolher, o diálogo reabre com a seleção. */}
+      <Dialog
+        open={!!dialogUp && !abrindoPicker}
+        onOpenChange={(o) => {
+          if (!o && !abrindoPicker) setDialogUp(null)
+        }}
+      >
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
+          {/* Cabeçalho com faixa colorida */}
+          <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
+            <DialogHeader className="space-y-1 text-left">
+              <DialogTitle className="flex items-center gap-2.5 text-lg">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                  <Plus className="h-5 w-5" />
+                </span>
+                Novo resumo
+              </DialogTitle>
+              {dialogUp && (
+                <p className="pl-[2.9rem] text-sm text-muted-foreground">
+                  {materia ? `${materiaLabel(materia)} · ` : ""}
+                  {dialogUp.nome}
+                </p>
+              )}
+            </DialogHeader>
           </div>
-          <DialogFooter>
+
+          <div className="space-y-4 p-5 pt-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="titulo-resumo" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Título
+              </Label>
+              <Input
+                id="titulo-resumo"
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                placeholder="Ex.: Insuficiência Cardíaca"
+                className="h-11"
+              />
+            </div>
+
+            {/* Seletor de arquivo */}
+            <button
+              type="button"
+              disabled={abrindoPicker}
+              onClick={async () => {
+                const f = await escolher(false)
+                if (f) setArquivo(f)
+              }}
+              className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/50 hover:shadow-sm disabled:opacity-60"
+            >
+              <span
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                  arquivo ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
+                }`}
+              >
+                {abrindoPicker ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : arquivo ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  <FileUp className="h-5 w-5" />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  Arquivo do Drive
+                  <span className="rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive">
+                    obrigatório
+                  </span>
+                </span>
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {arquivo ? arquivo.name : "Escolher no seu Google Drive"}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </button>
+
+            {/* Seletor de capa */}
+            <button
+              type="button"
+              disabled={abrindoPicker}
+              onClick={async () => {
+                const f = await escolher(true)
+                if (f) setCapa(f)
+              }}
+              className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/50 hover:shadow-sm disabled:opacity-60"
+            >
+              <span
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                  capa ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
+                }`}
+              >
+                {abrindoPicker ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : capa ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  <ImageIcon className="h-5 w-5" />
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  Capa
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    opcional
+                  </span>
+                </span>
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {capa ? capa.name : "Imagem de capa do card (do seu Drive)"}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </button>
+
+            {erroDialog && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
+                <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{erroDialog}</span>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-5 py-3">
             <Button variant="outline" onClick={() => setDialogUp(null)} disabled={salvando}>
               Cancelar
             </Button>
-            <Button onClick={salvarResumo} disabled={salvando}>
-              {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {salvando ? "Salvando..." : "Salvar"}
+            <Button onClick={salvarResumo} disabled={salvando || !arquivo || !titulo.trim()} className="gap-2">
+              {salvando ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {salvando ? "Salvando..." : "Salvar resumo"}
             </Button>
           </DialogFooter>
         </DialogContent>
