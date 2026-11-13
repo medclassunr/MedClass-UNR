@@ -223,3 +223,34 @@
 .animate-avatar-balao {
   animation: avatar-balao-entra 0.28s ease-out;
 }
+
+/* ───────────── Google Picker (seletor de arquivos do Drive) ─────────────
+   O CONTEÚDO interno é um iframe do Google (docs.google.com) e não dá pra
+   estilizar (cross-origin). Mas a MOLDURA (fundo + contêiner) são elementos
+   que o Picker injeta no nosso body, então dá pra deixar moderna: fundo
+   escurecido/desfocado, cantos arredondados, sombra. */
+.picker-dialog-bg {
+  background-color: rgba(15, 23, 42, 0.55) !important;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 1 !important;
+}
+
+.picker-dialog {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4) !important;
+  animation: picker-aparece 0.2s ease-out;
+}
+
+/* Arredonda também o conteúdo/iframe interno (clip pelos cantos do contêiner). */
+.picker-dialog-content,
+.picker-dialog iframe {
+  border-radius: 16px;
+}
+
+@keyframes picker-aparece {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
